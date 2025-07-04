@@ -4,10 +4,10 @@
 import streamlit as st
 from urllib.parse import urlencode
 
-"""Nos permite mostrar un titulo en la parte superior de la APP"""
+#Nos permite mostrar un titulo en la parte superior de la APP
 
-"""La libreria de streamlit nos permite construir interfaces sencillas"""
-"""url encode nos permite convertir un diccionario en una cadena de parámetros url"""
+#La libreria de streamlit nos permite construir interfaces sencillas
+#url encode nos permite convertir un diccionario en una cadena de parámetros url
 
 st.title("🔧 UTM Genie: Generador de URL's con UTM")
 
