@@ -59,6 +59,27 @@ if st.button("Generar URL"):
         final_url = f"{base_url}?{urlencode(params)}"
         st.success("✅ URL generada:")
         st.code(final_url)
-        st.markdown(f"[🔗 Ir al enlace]({final_url})")
+        st.markdown(
+            f"""
+            <a href="{final_url}" target="_blank">
+                <button style="
+                background-color:#4CAF50;
+                color:white;
+                padding:10px 20px;
+                text-align:center;
+                border:none;
+                border-radius:6px;
+                text-decoration:none;
+                display:inline-block;
+                font-size:16px;
+                cursor:pointer;
+                margin-top:10px;
+        ">
+            🌐 Ir al enlace generado
+        </button>
+    </a>
+    """,
+    unsafe_allow_html=True
+)
     else:
         st.error("❌ Hay campos UTM con caracteres inválidos. Revísalos antes de continuar.")
