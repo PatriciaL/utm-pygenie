@@ -1,14 +1,14 @@
 # UTM Genie: Generador de URL's con UTM
 
 #Importamos las librerias
-"""La libreria de streamlit nos permite construir interfaces sencillas"""
-"""url encode nos permite convertir un diccionario en una cadena de parámetros url"""
-
-
 import streamlit as st
 from urllib.parse import urlencode
 
-#Nos permite mostrar un titulo en la parte superior de la APP
+"""Nos permite mostrar un titulo en la parte superior de la APP"""
+
+"""La libreria de streamlit nos permite construir interfaces sencillas"""
+"""url encode nos permite convertir un diccionario en una cadena de parámetros url"""
+
 st.title("🔧 UTM Genie: Generador de URL's con UTM")
 
 #Crea un campo de texto donde el usuario puede introducir parametros
@@ -43,5 +43,5 @@ if st.button("Generar URL"):
     #muestra un mensaje de exito, la url generada con formato de código y un enlace clicable para probarla
     
     st.success("URL generada:")
-    est.text_input("URL generada", value=final_url, key="final_url", label_visibility="collapsed")
+    st.text_input("URL generada", value=final_url, key="final_url", label_visibility="collapsed")
     st.markdown(f"[Ir al enlace({final_url})]")
