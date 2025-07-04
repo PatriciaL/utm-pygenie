@@ -70,9 +70,8 @@ if st.button("Generar URL"):
 
         #------------ UX Bar ----------
 
-        #Mostrar URL generada
-
-         st.markdown(f"""
+               # ---------- UX Bar ----------
+        st.markdown(f"""
             <script>
             function copyToClipboard(text) {{
                 navigator.clipboard.writeText(text);
@@ -125,6 +124,3 @@ if st.button("Generar URL"):
                 </a>
             </div>
         """, unsafe_allow_html=True)
-
-    else:
-        st.error("❌ Hay campos UTM con caracteres inválidos. Revísalos antes de continuar.")
