@@ -1,20 +1,20 @@
+# UTM Genie - Generador de URLs con UTM
+
 import streamlit as st
-from streamlit_copybutton import copybutton
 import re
 from urllib.parse import urlencode
 import base64
 from PIL import Image
 import json
-import os
 
-# ---------- Configuración de la página ----------
+# ---------- 1. Configuracion de la pagina ----------
 st.set_page_config(
     page_title="UTM Genie - URL Builder",
     page_icon="🧙",
     layout="centered"
 )
 
-# ---------- Función para favicon ----------
+# ---------- 2. Cargar favicon ----------
 def get_favicon_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
@@ -29,11 +29,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ---------- Logo y Sidebar ----------
+# ---------- 3. Cargar logo y mostrar cabecera ----------
 logo = Image.open("components/utm_genie_logo_transparent_light.png")
-st.sidebar.image(logo, width=100)
+col1, col2 = st.columns([1, 4])
+with col1:
+    st.image(logo, width=100)
+with col2:
+    st.markdown("## 🔧 Generador de URLs con UTM")
+
+# ---------- 4. Menú lateral ----------
+st.sidebar.image(logo, width=80)
 st.sidebar.title("🧭 Navegación")
-page = st.sidebar.radio("Selecciona sección", [
+page = st.sidebar.radio("Ir a:", [
     "🏗️ Generador UTM",
     "✅ Validador Individual",
     "📂 Validador por CSV",
@@ -43,14 +50,12 @@ page = st.sidebar.radio("Selecciona sección", [
     "ℹ️ Acerca de"
 ])
 
-# ---------- Funciones auxiliares ----------
+# ---------- 5. Validación de UTM ----------
 def is_valid_utm(value):
     return bool(re.match(r"^[a-zA-Z0-9_-]+$", value))
 
-def validated_input(label, key, helper_text=""):
-    value = st.text_input(label, key=key)
-    if helper_text:
-        st.caption(f"Ej: {helper_text}")
+def validated_input(label, key, help_text=""):
+    value = st.text_input(label, key=key, help=help_text)
     is_valid = is_valid_utm(value) if value else True
     color = "#d4edda" if is_valid else "#f8d7da"
     st.markdown(
@@ -65,31 +70,18 @@ def validated_input(label, key, helper_text=""):
     )
     return value.strip()
 
-# ---------- Cargar ejemplos ----------
-EXAMPLES_PATH = "examples.json"
-def load_examples():
-    default = {
-        "utm_source": "newsletter",
-        "utm_medium": "email",
-        "utm_campaign": "verano2025",
-        "utm_term": "zapatos+rojos",
-        "utm_content": "banner_lateral",
-    }
-    if os.path.exists(EXAMPLES_PATH):
-        with open(EXAMPLES_PATH, "r") as f:
-            return json.load(f)
-    else:
-        with open(EXAMPLES_PATH, "w") as f:
-            json.dump(default, f, indent=2)
-        return default
-
-examples = load_examples()
-
-# ---------- Página: Generador de UTM ----------
+# ---------- 6. Página principal ----------
 if page == "🏗️ Generador UTM":
-    st.markdown("## 🔧 Generador de URLs con UTM")
-    base_url = st.text_input("URL base", "https://tusitio.com")
+    with st.expander("⚙️ Personalizar ejemplos para campos UTM"):
+        examples = {
+            "utm_source": st.text_input("Ejemplo para utm_source", "newsletter, facebook"),
+            "utm_medium": st.text_input("Ejemplo para utm_medium", "email, cpc"),
+            "utm_campaign": st.text_input("Ejemplo para utm_campaign", "lanzamiento2025"),
+            "utm_term": st.text_input("Ejemplo para utm_term", "zapatos+rojos"),
+            "utm_content": st.text_input("Ejemplo para utm_content", "banner_azul")
+        }
 
+    base_url = st.text_input("URL base", "https://tusitio.com")
     utm_source = validated_input("utm_source", "utm_source", examples["utm_source"])
     utm_medium = validated_input("utm_medium", "utm_medium", examples["utm_medium"])
     utm_campaign = validated_input("utm_campaign", "utm_campaign", examples["utm_campaign"])
@@ -108,47 +100,38 @@ if page == "🏗️ Generador UTM":
     if st.button("Generar URL"):
         if all(is_valid_utm(v) for v in params.values()):
             final_url = f"{base_url}?{urlencode(params)}"
-            st.success("✅ URL generada:")
-            st.code(final_url, language="text")
+            st.session_state["final_url"] = final_url
             st.balloons()
-            st.link_button("🌐 Abrir URL generada", final_url)
-            copybutton(final_url, "📋 Copiar URL")
-            csv = f"url\n{final_url}"
-            st.download_button("📅 Descargar CSV", csv, file_name="utm_url.csv", mime="text/csv")
-        else:
-            st.error("❌ Algunos campos contienen caracteres no válidos.")
 
-# ---------- Página: Validador Individual ----------
+    if "final_url" in st.session_state:
+        from streamlit_copybutton import copybutton
+        final_url = st.session_state["final_url"]
+        st.success("✅ URL generada:")
+        st.code(final_url, language="text")
+        copybutton(final_url, "📋 Copiar URL")
+        st.link_button("🌐 Abrir URL generada", final_url)
+
+# ---------- 7. Placeholder de otras secciones ----------
 elif page == "✅ Validador Individual":
-    st.markdown("## ✅ Validador de URL única")
-    st.info("En desarrollo...")
+    st.info("🔍 Esta sección validará una URL individual. Próximamente.")
 
-# ---------- Página: Validador CSV ----------
 elif page == "📂 Validador por CSV":
-    st.markdown("## 📂 Validador de URLs desde CSV")
-    st.info("En desarrollo...")
+    st.info("📄 Esta sección validará archivos CSV. Próximamente.")
 
-# ---------- Página: Verificador Page View ----------
 elif page == "🧪 Verificador Page View (GA)":
-    st.markdown("## 🧪 Verificador de Page View en GA")
-    st.info("En desarrollo...")
+    st.info("🔬 Esta sección usará Selenium para verificar tags de analytics.")
 
-# ---------- Página: Chatbot ----------
 elif page == "🤖 Chatbot Constructor":
-    st.markdown("## 🤖 Chatbot Constructor de URLs")
-    st.info("En desarrollo...")
+    st.info("🤖 Un chatbot te ayudará a construir URLs desde lenguaje natural.")
 
-# ---------- Página: Naming personalizado ----------
 elif page == "⚙️ Naming personalizado (drag & drop)":
-    st.markdown("## ⚙️ Constructor visual de naming conventions")
-    st.info("Esta funcionalidad se habilitará en la siguiente fase. Drag & drop pronto disponible.")
+    st.info("🧩 Pronto podrás construir tus convenciones de naming con bloques.")
 
-# ---------- Página: Acerca de ----------
 elif page == "ℹ️ Acerca de":
-    st.markdown("## ℹ️ Acerca de UTM Genie")
     st.markdown("""
-    Esta aplicación permite generar y validar URLs con parámetros UTM de forma rápida, validada y personalizable.
+    ## ℹ️ Acerca de UTM Genie
+    Esta app te permite construir y validar URLs UTM de forma rápida y precisa.
 
-    **Autor:** Patricia  
-    **Repositorio:** [GitHub](https://github.com/PatriciaL/utm-pygenie)
+    **Creado por:** Patricia
+    **Repositorio:** [utm-pygenie](https://github.com/PatriciaL/utm-pygenie)
     """)
