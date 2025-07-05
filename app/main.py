@@ -81,35 +81,11 @@ if page == "🏗️ Generador UTM":
         }
 
     base_url = st.text_input("URL base", "https://tusitio.com")
-    utm_source = validated_input(
-    "utm_source", "utm_source",
-    help_text="Indica la fuente del tráfico. Ayuda a saber de dónde vino el usuario. Por ejemplo: facebook, google, newsletter",
-    example_text=examples["utm_source"]
-)
-
-utm_medium = validated_input(
-    "utm_medium", "utm_medium",
-    help_text="Indica el canal o medio. Ej: cpc (pago por clic), email, social",
-    example_text=examples["utm_medium"]
-)
-
-utm_campaign = validated_input(
-    "utm_campaign", "utm_campaign",
-    help_text="Indica la campaña específica. Por ejemplo: lanzamiento2025, promo_julio",
-    example_text=examples["utm_campaign"]
-)
-
-utm_term = validated_input(
-    "utm_term", "utm_term",
-    help_text="Palabra clave usada. Ejemplo: cursos_streamlit",
-    example_text=examples["utm_term"]
-)
-
-utm_content = validated_input(
-    "utm_content", "utm_content",
-    help_text="Identificador de contenido. Ej: banner_top, video_aco",
-    example_text=examples["utm_content"]
-)
+    utm_source = validated_input("utm_source", "utm_source",help_text="Indica la fuente del tráfico. Ayuda a saber de dónde vino el usuario. Por ejemplo: facebook, google, newsletter",example_text=examples["utm_source"])
+    utm_medium = validated_input("utm_medium", "utm_medium",help_text="Indica el canal o medio. Ej: cpc (pago por clic), email, social",example_text=examples["utm_medium"])
+    utm_campaign = validated_input("utm_campaign", "utm_campaign",help_text="Indica la campaña específica. Por ejemplo: lanzamiento2025, promo_julio",example_text=examples["utm_campaign"])
+    utm_term = validated_input("utm_term", "utm_term",help_text="Palabra clave usada. Ejemplo: cursos_streamlit",example_text=examples["utm_term"])
+    utm_content = validated_input("utm_content", "utm_content",help_text="Identificador de contenido. Ej: banner_top, video_aco",example_text=examples["utm_content"])
 
     params = {
         "utm_source": utm_source,
