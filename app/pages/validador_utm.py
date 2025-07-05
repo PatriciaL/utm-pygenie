@@ -2,32 +2,74 @@ import streamlit as st
 import pandas as pd
 from urllib.parse import urlparse, parse_qs
 
-st.title("📂 Validador de URLs UTM (CSV)")
+st.set_page_config(page_title="Validador de URLs", layout="centered")
+st.title("📂 Validador de URLs con UTM")
 
-uploaded_file = st.file_uploader("Sube un archivo CSV con una columna de URLs", type=["csv"])
+st.markdown("Este módulo permite verificar si tus URLs tienen los parámetros UTM requeridos y están bien formateadas.")
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+# ----------- 1. Validación individual (cajetín) ----------
+st.subheader("✍️ Validar una URL individual")
 
-    if "url" not in df.columns:
-        st.error("⚠️ El archivo debe contener una columna llamada 'url'.")
+single_url = st.text_input("Pega una URL aquí")
+
+if single_url:
+    parsed = urlparse(single_url)
+    query = parse_qs(parsed.query)
+    missing = [p for p in ["utm_source", "utm_medium", "utm_campaign"] if p not in query]
+
+    if missing:
+        st.error(f"❌ Faltan parámetros obligatorios: {', '.join(missing)}")
+    elif " " in single_url:
+        st.warning("⚠️ La URL contiene espacios. Intenta codificarlos o usar guiones bajos.")
     else:
-        # Validación básica
-        results = []
-        for url in df["url"]:
-            parsed = urlparse(url)
-            query = parse_qs(parsed.query)
-            missing = [p for p in ["utm_source", "utm_medium", "utm_campaign"] if p not in query]
-            if missing:
-                results.append({"url": url, "error": f"Faltan: {', '.join(missing)}"})
-            else:
-                results.append({"url": url, "error": ""})
+        st.success("✅ URL válida. Todos los parámetros UTM están presentes.")
+        st.code(single_url)
 
-        result_df = pd.DataFrame(results)
-        st.dataframe(result_df)
+# ----------- 2. Subida de CSV/Excel ----------
+st.subheader("📤 Validar URLs desde archivo (CSV o Excel)")
 
-        invalid = result_df[result_df["error"] != ""]
-        if not invalid.empty:
-            st.warning(f"🔍 {len(invalid)} URLs tienen errores.")
+uploaded_file = st.file_uploader("Sube un archivo con una columna llamada 'url'", type=["csv", "xlsx"])
+
+if uploaded_file:
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
         else:
-            st.success("✅ Todas las URLs tienen los parámetros obligatorios.")
+            df = pd.read_excel(uploaded_file)
+
+        if "url" not in df.columns:
+            st.error("❌ El archivo debe contener una columna llamada 'url'.")
+        else:
+            # Validar cada URL
+            results = []
+            for i, row in df.iterrows():
+                url = row["url"]
+                parsed = urlparse(str(url))
+                query = parse_qs(parsed.query)
+                errors = []
+
+                if not parsed.scheme.startswith("http"):
+                    errors.append("URL inválida o sin http(s)")
+
+                for param in ["utm_source", "utm_medium", "utm_campaign"]:
+                    if param not in query:
+                        errors.append(f"Falta {param}")
+
+                if " " in str(url):
+                    errors.append("Contiene espacios")
+
+                results.append({
+                    "url": url,
+                    "estado": "✅ Correcta" if not errors else "❌ Error",
+                    "detalles": "; ".join(errors) if errors else "OK"
+                })
+
+            result_df = pd.DataFrame(results)
+            st.markdown("### ✅ Resultado de la validación")
+            st.dataframe(result_df)
+
+            csv_out = result_df.to_csv(index=False).encode()
+            st.download_button("📥 Descargar reporte CSV", csv_out, file_name="reporte_utm.csv", mime="text/csv")
+
+    except Exception as e:
+        st.error(f"Ocurrió un error al procesar el archivo: {str(e)}")
