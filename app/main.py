@@ -6,6 +6,8 @@ from urllib.parse import urlencode
 import base64
 from PIL import Image
 import json
+import streamlit_copybutton
+
 
 # ---------- 1. Configuracion de la pagina ----------
 st.set_page_config(
@@ -108,7 +110,7 @@ if page == "🏗️ Generador UTM":
         final_url = st.session_state["final_url"]
         st.success("✅ URL generada:")
         st.code(final_url, language="text")
-        copybutton(final_url, "📋 Copiar URL")
+        streamlit_copybutton.copybutton(final_url, "📋 Copiar URL")
         st.link_button("🌐 Abrir URL generada", final_url)
 
 # ---------- 7. Placeholder de otras secciones ----------
