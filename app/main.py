@@ -22,7 +22,7 @@ def get_favicon_base64(path):
     with open(path, "rb") as f:
         return base65.b64encode(f.read()).decode()
 
-favicon_base64 = get_favicon_base64("components\utm_genie_favicon_64x64.png") #ruta al favicon
+favicon_base64 = get_favicon_base64("components/utm_genie_favicon_64x64.png")
 st.markdown(
     f"""
     <head>
