@@ -5,7 +5,6 @@ import re
 from urllib.parse import urlencode
 import base64
 from PIL import Image
-import streamlit_copybutton  # Importación correcta
 
 # ---------- 1. Configuración de la página ----------
 st.set_page_config(
@@ -46,11 +45,11 @@ page = st.sidebar.radio("Ir a:", [
     "📂 Validador por CSV",
     "🧪 Verificador Page View (GA)",
     "🤖 Chatbot Constructor",
-    "⚙️ Naming personalizado (drag & drop)",
+    "⚙️ Naming personalizado",
     "ℹ️ Acerca de"
 ])
 
-# ---------- 5. Validación de UTM ----------
+# ---------- 5. Validación ----------
 def is_valid_utm(value):
     return bool(re.match(r"^[a-zA-Z0-9_-]+$", value))
 
@@ -72,7 +71,7 @@ def validated_input(label, key, help_text=""):
 
 # ---------- 6. Página principal ----------
 if page == "🏗️ Generador UTM":
-    with st.expander("⚙️ Personalizar ejemplos para campos UTM"):
+    with st.expander("⚙️ Personalizar ejemplos"):
         examples = {
             "utm_source": st.text_input("Ejemplo para utm_source", "newsletter, facebook"),
             "utm_medium": st.text_input("Ejemplo para utm_medium", "email, cpc"),
@@ -106,33 +105,35 @@ if page == "🏗️ Generador UTM":
     if "final_url" in st.session_state:
         final_url = st.session_state["final_url"]
         st.success("✅ URL generada:")
-        st.code(final_url, language="text")
+        st.code(final_url)
 
-        # Botón copiar seguro
-        streamlit_copybutton.copybutton(final_url, "📋 Copiar URL")
-        st.link_button("🌐 Abrir URL generada", final_url)
+        if st.button("🌐 Abrir en navegador"):
+            st.markdown(f"[{final_url}]({final_url})", unsafe_allow_html=True)
 
-        # Descargar como CSV
         csv = f"url\n{final_url}"
         b64 = base64.b64encode(csv.encode()).decode()
-        href = f'data:file/csv;base64,{b64}'
-        st.download_button("📥 Descargar CSV", data=csv, file_name="utm_url.csv", mime="text/csv")
+        st.download_button(
+            label="📥 Descargar como CSV",
+            data=csv,
+            file_name="utm_url.csv",
+            mime="text/csv"
+        )
 
-# ---------- 7. Placeholder de otras secciones ----------
+# ---------- 7. Otras secciones ----------
 elif page == "✅ Validador Individual":
-    st.info("🔍 Esta sección validará una URL individual. Próximamente.")
+    st.info("🔍 Validación individual: próximamente")
 
 elif page == "📂 Validador por CSV":
-    st.info("📄 Esta sección validará archivos CSV. Próximamente.")
+    st.info("📄 Validación por CSV: próximamente")
 
 elif page == "🧪 Verificador Page View (GA)":
-    st.info("🔬 Esta sección usará Selenium para verificar tags de analytics.")
+    st.info("🧪 Selenium para verificar tags de analytics")
 
 elif page == "🤖 Chatbot Constructor":
-    st.info("🤖 Un chatbot te ayudará a construir URLs desde lenguaje natural.")
+    st.info("🤖 Chatbot en desarrollo")
 
-elif page == "⚙️ Naming personalizado (drag & drop)":
-    st.info("🧩 Pronto podrás construir tus convenciones de naming con bloques.")
+elif page == "⚙️ Naming personalizado":
+    st.info("🧩 Constructor drag & drop: próximamente")
 
 elif page == "ℹ️ Acerca de":
     st.markdown("""
