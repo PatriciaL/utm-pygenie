@@ -81,11 +81,11 @@ if page == "🏗️ Generador UTM":
         }
 
     base_url = st.text_input("URL base", "https://tusitio.com")
-    utm_source = validated_input("utm_source", "utm_source", examples["utm_source"])
-    utm_medium = validated_input("utm_medium", "utm_medium", examples["utm_medium"])
-    utm_campaign = validated_input("utm_campaign", "utm_campaign", examples["utm_campaign"])
-    utm_term = validated_input("utm_term", "utm_term", examples["utm_term"])
-    utm_content = validated_input("utm_content", "utm_content", examples["utm_content"])
+    utm_source = validated_input("utm_source", "utm_source", help_text="Indica la fuente del tráfico. Ayuda a saber de dónde vino el usuario. Por ejemplo: facebook, google,newsletter",examples["utm_source"])
+    utm_medium = validated_input("utm_medium", "utm_medium", help_text="Indica el canal o medio. Ayuda a saber qué tipo de medio se usó. Por ejemplo: facebook, cpc (pago por clic),email,social", examples["utm_medium"])
+    utm_campaign = validated_input("utm_campaign", "utm_campaign",help_text="Indica la campaña específica. Ayuda a saber dque campaña de marketing nos trajo el tráfico. Por ejemplo: facebook, cpc(pago por clic), email, social", examples["utm_campaign"])
+    utm_term = validated_input("utm_term", "utm_term", help_text="Indica la palabra clave o expresión. Ayuda a conocer que palabra clave se buscó, aunque puede ser utilizado para otras cosas como complemento. Por ejemplo: cursos streamlit",examples["utm_term"])
+    utm_content = validated_input("utm_content", "utm_content", help_text="Indica el contenido del anuncio. Ayuda a conover que creatividad, que versiones del anuncio o información adicional relevante. Por ejemplo: banner_top,video_aco,fase de conversion",examples["utm_content"])
 
     params = {
         "utm_source": utm_source,
