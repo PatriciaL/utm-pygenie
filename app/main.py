@@ -5,11 +5,9 @@ import re
 from urllib.parse import urlencode
 import base64
 from PIL import Image
-import json
-import streamlit_copybutton
+import streamlit_copybutton  # Importación correcta
 
-
-# ---------- 1. Configuracion de la pagina ----------
+# ---------- 1. Configuración de la página ----------
 st.set_page_config(
     page_title="UTM Genie - URL Builder",
     page_icon="🧙",
@@ -106,12 +104,19 @@ if page == "🏗️ Generador UTM":
             st.balloons()
 
     if "final_url" in st.session_state:
-        from streamlit_copybutton import copybutton
         final_url = st.session_state["final_url"]
         st.success("✅ URL generada:")
         st.code(final_url, language="text")
+
+        # Botón copiar seguro
         streamlit_copybutton.copybutton(final_url, "📋 Copiar URL")
         st.link_button("🌐 Abrir URL generada", final_url)
+
+        # Descargar como CSV
+        csv = f"url\n{final_url}"
+        b64 = base64.b64encode(csv.encode()).decode()
+        href = f'data:file/csv;base64,{b64}'
+        st.download_button("📥 Descargar CSV", data=csv, file_name="utm_url.csv", mime="text/csv")
 
 # ---------- 7. Placeholder de otras secciones ----------
 elif page == "✅ Validador Individual":
@@ -134,6 +139,6 @@ elif page == "ℹ️ Acerca de":
     ## ℹ️ Acerca de UTM Genie
     Esta app te permite construir y validar URLs UTM de forma rápida y precisa.
 
-    **Creado por:** Patricia
+    **Creado por:** Patricia  
     **Repositorio:** [utm-pygenie](https://github.com/PatriciaL/utm-pygenie)
     """)
