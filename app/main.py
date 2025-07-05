@@ -5,13 +5,44 @@ import streamlit as st
 import re
 from urllib.parse import urlencode
 import base64
+from PIL import Image
 
-import streamlit as st
-import re
-from urllib.parse import urlencode
 
-st.set_page_config(page_title="Generador de URLs UTM", layout="centered")
-st.title("🔧 Generador de URLs con UTM (con validación)")
+# 1.Configuracion de la pagina
+
+st.set_page_config(
+    page_title= "UTM Genie - URL Builder", 
+    page_icon = "🧙" , #fallback emoji
+    layout="centered"
+)
+
+# 2. Inyectamos el favicon desde la imagen en el archivo
+
+def get_favicon_base64(path):
+    with open(path, "rb") as f:
+        return base65.b64encode(f.read()).decode()
+
+favicon_base64 = get_favicon_base64("components\utm_genie_favicon_64x64.png") #ruta al favicon
+st.markdown(
+    f"""
+    <head>
+        <link rel="icon" type="image/png" href="data:image/png;base64,{favicon_base64}">
+    </head>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# 3. Cargar logo y mostrar cabecera con columnas
+logo = Image.open("components/utm_genie_logo_transparent_light.png")
+
+col1, col2 = st.columns([1, 4])
+with col1:
+    st.image(logo, width=100)
+with col2:
+    st.markdown("## 🔧 Generador de URLs con UTM")
+    st.caption("Con validación, estilo y personalización")
+
 
 # ----------------- Validacion ---------
 
