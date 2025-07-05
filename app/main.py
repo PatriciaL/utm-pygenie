@@ -39,15 +39,15 @@ with col2:
 # ---------- 4. Menú lateral ----------
 st.sidebar.image(logo, width=80)
 st.sidebar.title("🧭 Navegación")
-#page = st.sidebar.radio("Ir a:", [
-    #"🏗️ Generador UTM",
-    #"✅ Validador Individual",
-    #"📂 Validador por CSV",
-    #"🧪 Verificador Page View (GA)",
-    #"🤖 Chatbot Constructor",
-    #"⚙️ Naming personalizado",
-    #"ℹ️ Acerca de"
-#])
+page = st.sidebar.radio("Ir a:", [
+    "🏗️ Generador UTM",
+    "✅ Validador Individual",
+    "📂 Validador por CSV",
+    "🧪 Verificador Page View (GA)",
+    "🤖 Chatbot Constructor",
+    "⚙️ Naming personalizado",
+    "ℹ️ Acerca de"
+])
 
 # ---------- 5. Validación ----------
 def is_valid_utm(value):
