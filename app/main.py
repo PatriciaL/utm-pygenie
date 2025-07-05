@@ -53,7 +53,7 @@ page = st.sidebar.radio("Ir a:", [
 def is_valid_utm(value):
     return bool(re.match(r"^[a-zA-Z0-9_-]+$", value))
 
-def validated_input(label, key, help_text=""):
+def validated_input(label, key, help_text="", example_text=""):
     value = st.text_input(label, key=key, help=help_text)
     is_valid = is_valid_utm(value) if value else True
     color = "#d4edda" if is_valid else "#f8d7da"
@@ -67,6 +67,8 @@ def validated_input(label, key, help_text=""):
         """,
         unsafe_allow_html=True,
     )
+    if example_text:
+        st.caption(f"💡 Ejemplo: `{example_text}`")
     return value.strip()
 
 # ---------- 6. Página principal ----------
@@ -81,11 +83,11 @@ if page == "🏗️ Generador UTM":
         }
 
     base_url = st.text_input("URL base", "https://tusitio.com")
-    utm_source = validated_input("utm_source", "utm_source",help_text="Indica la fuente del tráfico. Ayuda a saber de dónde vino el usuario. Por ejemplo: facebook, google, newsletter",example_text=examples["utm_source"])
-    utm_medium = validated_input("utm_medium", "utm_medium",help_text="Indica el canal o medio. Ej: cpc (pago por clic), email, social",example_text=examples["utm_medium"])
-    utm_campaign = validated_input("utm_campaign", "utm_campaign",help_text="Indica la campaña específica. Por ejemplo: lanzamiento2025, promo_julio",example_text=examples["utm_campaign"])
-    utm_term = validated_input("utm_term", "utm_term",help_text="Palabra clave usada. Ejemplo: cursos_streamlit",example_text=examples["utm_term"])
-    utm_content = validated_input("utm_content", "utm_content",help_text="Identificador de contenido. Ej: banner_top, video_aco",example_text=examples["utm_content"])
+    utm_source = validated_input("utm_source", "utm_source", help_text="Fuente del tráfico", example_text=examples["utm_source"])
+    utm_medium = validated_input("utm_medium", "utm_medium", help_text="Canal o medio", example_text=examples["utm_medium"])
+    utm_campaign = validated_input("utm_campaign", "utm_campaign", help_text="Campaña específica", example_text=examples["utm_campaign"])
+    utm_term = validated_input("utm_term", "utm_term", help_text="Palabra clave", example_text=examples["utm_term"])
+    utm_content = validated_input("utm_content", "utm_content", help_text="Contenido del anuncio", example_text=examples["utm_content"])
 
     params = {
         "utm_source": utm_source,
@@ -106,12 +108,10 @@ if page == "🏗️ Generador UTM":
         final_url = st.session_state["final_url"]
         st.success("✅ URL generada:")
         st.code(final_url)
-
-        if st.button("🌐 Abrir en navegador"):
-            st.markdown(f"[{final_url}]({final_url})", unsafe_allow_html=True)
+        st.button("📋 Copiar URL", on_click=lambda: st.toast("URL copiada (simulado)"))
+        st.link_button("🌐 Abrir URL", final_url)
 
         csv = f"url\n{final_url}"
-        b64 = base64.b64encode(csv.encode()).decode()
         st.download_button(
             label="📥 Descargar como CSV",
             data=csv,
@@ -143,3 +143,4 @@ elif page == "ℹ️ Acerca de":
     **Creado por:** Patricia  
     **Repositorio:** [utm-pygenie](https://github.com/PatriciaL/utm-pygenie)
     """)
+
