@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_copybutton import copybutton
 import re
 from urllib.parse import urlencode
 import base64
@@ -108,10 +109,10 @@ if page == "🏗️ Generador UTM":
         if all(is_valid_utm(v) for v in params.values()):
             final_url = f"{base_url}?{urlencode(params)}"
             st.success("✅ URL generada:")
-            st.code(final_url)
+            st.code(final_url, language="text")
             st.balloons()
             st.link_button("🌐 Abrir URL generada", final_url)
-            st.download_button("📋 Copiar URL", final_url, file_name="utm_url.txt", mime="text/plain")
+            copybutton(final_url, "📋 Copiar URL")
             csv = f"url\n{final_url}"
             st.download_button("📅 Descargar CSV", csv, file_name="utm_url.csv", mime="text/csv")
         else:
