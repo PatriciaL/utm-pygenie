@@ -108,7 +108,7 @@ if page == "🏗️ Generador UTM":
         final_url = st.session_state["final_url"]
         st.success("✅ URL generada:")
         st.code(final_url)
-        st.button("📋 Copiar URL", on_click=lambda: st.toast("URL copiada (simulado)"))
+        #st.button("📋 Copiar URL", on_click=lambda: st.toast("URL copiada (simulado)"))
         st.link_button("🌐 Abrir URL", final_url)
 
         csv = f"url\n{final_url}"
@@ -120,22 +120,22 @@ if page == "🏗️ Generador UTM":
         )
 
 # ---------- 7. Otras secciones ----------
-elif page == "✅ Validador Individual":
-    st.info("🔍 Validación individual: próximamente")
+elif page == "Validador Individual":
+    st.info("Validación individual: próximamente")
 
 elif page == "📂 Validador por CSV":
-    st.info("📄 Validación por CSV: próximamente")
+    st.info("¿No sabes si tus url están correctas?: próximamente")
 
-elif page == "🧪 Verificador Page View (GA)":
-    st.info("🧪 Selenium para verificar tags de analytics")
+elif page == "Verificador Page View (GA)":
+    st.info("Comprobar que la url genera una sesión en GA4")
 
-elif page == "🤖 Chatbot Constructor":
-    st.info("🤖 Chatbot en desarrollo")
+elif page == "Chatbot Constructor":
+    st.info("Chatbot en desarrollo")
 
-elif page == "⚙️ Naming personalizado":
+elif page == "Naming personalizado":
     st.info("🧩 Constructor drag & drop: próximamente")
 
-elif page == "ℹ️ Acerca de":
+elif page == " Acerca de":
     st.markdown("""
     ## ℹ️ Acerca de UTM Genie
     Esta app te permite construir y validar URLs UTM de forma rápida y precisa.
