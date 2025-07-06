@@ -44,12 +44,12 @@ def drag_section(title, key, default_list):
 # --------- Secciones ---------
 
 # utm_campaign
-drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", "fecha", "region"])
+drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", "fecha", "region","pais","plataforma de activacion","fase del funnel","objetivo","tipo de audiencia"])
 
 # utm_source
 st.subheader("📡 utm_source")
 st.caption("Selecciona valores sugeridos por GA4 en la configuracion de canales por defecto o añade los tuyos.")
-ga4_sources = ["google", "facebook", "instagram", "newsletter", "linkedin"]
+ga4_sources = ["google","Google Ads","facebook","pinterest","youtube","vimeo","whatsapp","instagram-stories","x", "instagram", "newsletter","email", "linkedin","tiktok","podimo","google-pmax","google-red","google-int-shop","seedtag","twitch","indigitall","snapchat","bing","yahoo","bing-ads"]
 selected_sources = st.multiselect("Valores GA4", ga4_sources, default=["google"])
 extra_sources = st.text_input("Otros valores personalizados (usa comas para por separar)", key="custom_source")
 source_list = selected_sources + [s.strip() for s in extra_sources.split(",") if s.strip()]
@@ -60,7 +60,7 @@ drag_section("Ordenar utm_source", "source_order", source_list)
 # utm_medium
 st.subheader("🎯 utm_medium")
 st.caption("Selecciona canales recomendados por GA4 o añade los tuyos.")
-ga4_mediums = ["organic", "cpc", "email", "referral", "social"]
+ga4_mediums = ["organic", "cpc", "email", "referral", "social","audio","display","banner","interstitial","cpm","expandible","push","qr","video-organic","paid","retargeting","sms","influencer"]
 selected_mediums = st.multiselect("Valores GA4", ga4_mediums, default=["cpc"])
 extra_mediums = st.text_input("Otros valores personalizados (coma separada)", key="custom_medium")
 medium_list = selected_mediums + [s.strip() for s in extra_mediums.split(",") if s.strip()]
@@ -80,11 +80,11 @@ st.subheader("📁 Exportar configuración como CSV")
 
 if st.button("📥 Generar CSV"):
     config = {
-        "utm_campaign": " > ".join(st.session_state.get("campaign_order", [])),
-        "utm_source": " > ".join(st.session_state.get("source_order", [])),
-        "utm_medium": " > ".join(st.session_state.get("medium_order", [])),
-        "utm_content": " > ".join(st.session_state.get("content_order", [])),
-        "utm_term": " > ".join(st.session_state.get("term_order", [])),
+        "utm_campaign": "_".join(st.session_state.get("campaign_order", [])),
+        "utm_source": "_".join(st.session_state.get("source_order", [])),
+        "utm_medium": "_".join(st.session_state.get("medium_order", [])),
+        "utm_content": "_".join(st.session_state.get("content_order", [])),
+        "utm_term": "_".join(st.session_state.get("term_order", [])),
     }
     df = pd.DataFrame([config])
     st.dataframe(df)
