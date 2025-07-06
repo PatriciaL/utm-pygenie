@@ -3,21 +3,21 @@ from streamlit_sortables import sort_items
 import pandas as pd
 
 st.set_page_config(page_title="Naming Convention Builder", layout="wide")
-st.title("🧱 Configurador de Naming Convention para UTM")
+st.title("Naming Convention Builder")
 
 st.markdown("""
-Este módulo te permite crear una convención personalizada para tus parámetros UTM utilizando bloques *drag & drop*.
+Este módulo te permite crear tu propio nombrado para que puedas personalizar tus parámetros UTM utilizando bloques *drag & drop* y luego exportarlo en csv para que lo utilices para su uso posterior.
 
-👉 Reordena los elementos en cada sección para definir la estructura que prefieras.  
-👉 Puedes añadir elementos personalizados.  
+👉Reordena los elementos en cada sección para definir la estructura que prefieras.  
+👉 Puedes añadir elementos personalizados de acuerdo a tu negocio.  
 👉 Al final puedes exportar la configuración como archivo `.csv`.
 
 **ℹ️ Tipos de parámetros UTM:**
-- `utm_campaign`: información de producto, audiencia, fecha, etc.
+- `utm_campaign`: definimos el nombre de campaña. A más información demos mejor.
 - `utm_source`: fuente del tráfico (GA4: google, facebook...)
 - `utm_medium`: canal (GA4: cpc, email, organic...)
 - `utm_content`: versión del contenido, test A/B, posición...
-- `utm_term`: palabra clave o tipo de coincidencia
+- `utm_term`: palabra clave o tipo de coincidencia, aunque puedes usarlo para cualquier otro propósito
 """)
 
 # --------- Utilidades ---------
@@ -48,10 +48,10 @@ drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", 
 
 # utm_source
 st.subheader("📡 utm_source")
-st.caption("Selecciona valores sugeridos por GA4 o añade los tuyos.")
+st.caption("Selecciona valores sugeridos por GA4 en la configuracion de canales por defecto o añade los tuyos.")
 ga4_sources = ["google", "facebook", "instagram", "newsletter", "linkedin"]
 selected_sources = st.multiselect("Valores GA4", ga4_sources, default=["google"])
-extra_sources = st.text_input("Otros valores personalizados (coma separada)", key="custom_source")
+extra_sources = st.text_input("Otros valores personalizados (usa comas para por separar)", key="custom_source")
 source_list = selected_sources + [s.strip() for s in extra_sources.split(",") if s.strip()]
 if not source_list:
     source_list = ["google"]
