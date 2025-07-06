@@ -49,7 +49,9 @@ ga4_mediums = ["organic", "cpc", "email", "referral", "social"]
 selected_mediums = st.multiselect("Valores comunes (GA4)", ga4_mediums, default=["cpc"])
 extra_mediums = st.text_input("Otros valores personalizados (separados por coma)", key="medium_input")
 custom_medium_blocks = selected_mediums + [s.strip() for s in extra_mediums.split(",") if s.strip()]
-drag_section("Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
+if "medium_order" not in st.session_state or st.session_state["medium_order"] != custom_medium_blocks:
+    st.session_state["medium_order"] = custom_medium_blocks
+drag_section("Ordenar bloques de utm_medium", "medium_order", st.session_state["medium_order"])
 
 drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion"])
 drag_section("🔍 utm_term", "term_order", ["keyword", "matchtype"])
