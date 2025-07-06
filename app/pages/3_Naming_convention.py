@@ -18,20 +18,24 @@ def reset_section(key, default_list):
     st.session_state[key] = default_list.copy()
 
 def drag_section(title, key, default_list):
-    if key not in st.session_state:
+    # Asegurar que default_list sea lista de strings
+    default_list = [str(i) for i in default_list]
+
+    # Inicializar o limpiar si el estado no es válido
+    if key not in st.session_state or not isinstance(st.session_state[key], list) or not all(isinstance(i, str) for i in st.session_state[key]):
         st.session_state[key] = default_list.copy()
 
     st.subheader(title)
     cols = st.columns([8, 1])
     with cols[0]:
-        result = sort_items(
-            st.session_state[key],
+        new_order = sort_items(
+            items=st.session_state[key],
             direction="horizontal",
             key=key
         )
-        # Verificamos la estructura del resultado
-        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict) and "items" in result[0]:
-            st.session_state[key] = result[0]["items"]
+        # Garantizar que sea lista válida
+        if isinstance(new_order, list):
+            st.session_state[key] = [str(i) for i in new_order]
 
     with cols[1]:
         if st.button("🔄 Reset", key=f"reset_{key}"):
@@ -39,7 +43,6 @@ def drag_section(title, key, default_list):
 
 # ---------- Secciones ----------
 
-# utm_campaign
 drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", "fecha", "region"])
 
 # utm_source con ayuda GA4
@@ -58,10 +61,7 @@ extra_mediums = st.text_input("Otros valores personalizados (separados por coma)
 custom_medium_blocks = selected_mediums + [s.strip() for s in extra_mediums.split(",") if s.strip()]
 drag_section("Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
 
-# utm_content
 drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion"])
-
-# utm_term
 drag_section("🔍 utm_term", "term_order", ["keyword", "matchtype"])
 
 # ---------- Generar CSV ----------
