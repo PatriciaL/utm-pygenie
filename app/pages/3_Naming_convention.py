@@ -6,16 +6,14 @@ st.set_page_config(page_title="Naming Convention Builder", layout="wide")
 st.title("🧱 Configurador de Naming Convention para UTM")
 
 st.markdown("""
-Este módulo te permite construir tus convenciones de naming personalizadas para cada uno de los parámetros UTM.
+Este módulo te permite crear una convención personalizada para tus parámetros UTM utilizando bloques drag & drop.
 
-1. 🔀 Ordena los bloques con **drag & drop** por parámetro.
-2. 🔄 Usa los botones de **reset** para volver a la configuración inicial.
-3. 📥 Exporta tu configuración como CSV para compartirla o documentarla.
-4. 📚 Se incluyen sugerencias comunes (GA4) para `utm_source` y `utm_medium`.
+- 📦 Puedes ordenar los componentes dentro de cada parámetro.
+- 📊 Consulta sugerencias oficiales (GA4) para `source` y `medium`.
+- 🧩 Finalmente descarga un archivo `.csv` con tu configuración personalizada.
+""")
 
----""")
-
-# ---------- Utilidades ----------
+# ---------- Funciones utilitarias ----------
 def reset_section(key, default_list):
     st.session_state[key] = default_list.copy()
 
@@ -31,8 +29,9 @@ def drag_section(title, key, default_list):
             direction="horizontal",
             key=key
         )
-        if result and isinstance(result, list) and "items" in result[0]:
+        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict) and "items" in result[0]:
             st.session_state[key] = result[0]["items"]
+
     with cols[1]:
         if st.button("🔄 Reset", key=f"reset_{key}"):
             reset_section(key, default_list)
@@ -42,23 +41,21 @@ def drag_section(title, key, default_list):
 # utm_campaign
 drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", "fecha", "region"])
 
-# utm_source
+# utm_source con ayuda GA4
 st.subheader("📡 utm_source")
-st.caption("Fuente que origina el tráfico. Ejemplo: google, newsletter, facebook.")
 ga4_sources = ["google", "facebook", "instagram", "newsletter", "linkedin"]
 selected_sources = st.multiselect("Valores comunes (GA4)", ga4_sources, default=["google"])
-extra_sources = st.text_input("Otros valores personalizados (separados por coma)")
+extra_sources = st.text_input("Otros valores personalizados (separados por coma)", key="source_input")
 custom_source_blocks = selected_sources + [s.strip() for s in extra_sources.split(",") if s.strip()]
-drag_section("🔀 Ordenar bloques de utm_source", "source_order", custom_source_blocks)
+drag_section("Ordenar bloques de utm_source", "source_order", custom_source_blocks)
 
-# utm_medium
+# utm_medium con ayuda GA4
 st.subheader("🎯 utm_medium")
-st.caption("Tipo de canal. Ejemplo: cpc, email, social, referral.")
 ga4_mediums = ["organic", "cpc", "email", "referral", "social"]
 selected_mediums = st.multiselect("Valores comunes (GA4)", ga4_mediums, default=["cpc"])
 extra_mediums = st.text_input("Otros valores personalizados (separados por coma)", key="medium_input")
 custom_medium_blocks = selected_mediums + [s.strip() for s in extra_mediums.split(",") if s.strip()]
-drag_section("🔀 Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
+drag_section("Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
 
 # utm_content
 drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion"])
@@ -66,7 +63,7 @@ drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion
 # utm_term
 drag_section("🔍 utm_term", "term_order", ["keyword", "matchtype"])
 
-# ---------- Exportar CSV ----------
+# ---------- Generar CSV ----------
 st.markdown("---")
 st.subheader("📁 Generar archivo con configuración personalizada")
 
