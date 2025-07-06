@@ -39,7 +39,7 @@ def drag_section(title, key, default_list):
 # ---------- Secciones ----------
 
 # utm_campaign
-drag_section("✳️ utm_campaign", "campaign_order", "producto", "audiencia", "fecha", "region")
+drag_section("utm_campaign", "campaign_order", "producto", "audiencia", "fecha", "region")
 
 # utm_source con ayuda GA4
 st.subheader("📡 utm_source")
