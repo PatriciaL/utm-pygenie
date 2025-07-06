@@ -3,14 +3,14 @@ from streamlit_sortables import sort_items
 import pandas as pd
 
 st.set_page_config(page_title="Naming Convention Builder", layout="wide")
-st.title("Configurador de Naming Convention para UTM")
+st.title("🧱 Configurador de Naming Convention para UTM")
 
 st.markdown("""
 Este módulo te permite crear una convención personalizada para tus parámetros UTM utilizando bloques drag & drop.
 
-- 📦 Puedes ordenar los componentes dentro de cada parámetro.
-- 📊 Consulta sugerencias oficiales (GA4) para `source` y `medium`.
-- 🧩 Finalmente descarga un archivo `.csv` con tu configuración personalizada.
+- Ordena bloques dentro de cada parámetro (`utm_campaign`, `utm_source`, etc.).
+- Consulta valores sugeridos por GA4 para `source` y `medium`.
+- Descarga un `.csv` con tu configuración personalizada.
 """)
 
 # ---------- Funciones utilitarias ----------
@@ -29,6 +29,7 @@ def drag_section(title, key, default_list):
             direction="horizontal",
             key=key
         )
+        # Verificamos la estructura del resultado
         if isinstance(result, list) and len(result) > 0 and isinstance(result[0], dict) and "items" in result[0]:
             st.session_state[key] = result[0]["items"]
 
@@ -39,7 +40,7 @@ def drag_section(title, key, default_list):
 # ---------- Secciones ----------
 
 # utm_campaign
-drag_section("utm_campaign", "campaign_order", "producto", "audiencia", "fecha", "region")
+drag_section("✳️ utm_campaign", "campaign_order", ["producto", "audiencia", "fecha", "region"])
 
 # utm_source con ayuda GA4
 st.subheader("📡 utm_source")
@@ -58,10 +59,10 @@ custom_medium_blocks = selected_mediums + [s.strip() for s in extra_mediums.spli
 drag_section("Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
 
 # utm_content
-drag_section("utm_content", "content_order", "color", "version", "posicion")
+drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion"])
 
 # utm_term
-drag_section("utm_term", "term_order", "keyword", "matchtype")
+drag_section("🔍 utm_term", "term_order", ["keyword", "matchtype"])
 
 # ---------- Generar CSV ----------
 st.markdown("---")
@@ -79,7 +80,3 @@ if st.button("📥 Generar CSV"):
     st.dataframe(df)
     csv = df.to_csv(index=False).encode()
     st.download_button("⬇️ Descargar configuración CSV", data=csv, file_name="naming_config.csv", mime="text/csv")
-
-
-
-
