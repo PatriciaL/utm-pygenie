@@ -58,10 +58,10 @@ custom_medium_blocks = selected_mediums + [s.strip() for s in extra_mediums.spli
 drag_section("Ordenar bloques de utm_medium", "medium_order", custom_medium_blocks)
 
 # utm_content
-drag_section("🧩 utm_content", "content_order", ["color", "version", "posicion"])
+drag_section("utm_content", "content_order", "color", "version", "posicion")
 
 # utm_term
-drag_section("🔍 utm_term", "term_order", ["keyword", "matchtype"])
+drag_section("utm_term", "term_order", "keyword", "matchtype")
 
 # ---------- Generar CSV ----------
 st.markdown("---")
@@ -79,3 +79,7 @@ if st.button("📥 Generar CSV"):
     st.dataframe(df)
     csv = df.to_csv(index=False).encode()
     st.download_button("⬇️ Descargar configuración CSV", data=csv, file_name="naming_config.csv", mime="text/csv")
+
+
+
+
