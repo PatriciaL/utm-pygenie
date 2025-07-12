@@ -6,7 +6,7 @@ st.set_page_config(page_title="Naming Convention Builder", layout="wide")
 st.title("Naming Convention Builder")
 
 st.markdown("""
-Este módulo te permite crear tu propio nombrado para que puedas personalizar tus parámetros UTM utilizando bloques *drag & drop* y luego exportarlo en csv para que lo utilices para su uso posterior.
+Este módulo te permite crear tu propio nombrado de campañas para que puedas personalizar tus parámetros UTM. Utiliza los bloques *drag & drop*, introduce tus propios campos. También puedes exportarlo a CSV ¡listo para llevar!.
 
 👉Reordena los elementos en cada sección para definir la estructura que prefieras.  
 👉 Puedes añadir elementos personalizados de acuerdo a tu negocio.  
