@@ -6,109 +6,102 @@ from io import BytesIO
 st.set_page_config(page_title="Naming Convention Builder", layout="wide")
 st.title("🧱 Configurador de Naming Convention para UTM")
 
-# ------------ utilidades ------------
-def init_section(key, default_list):
-    if key not in st.session_state:
-        st.session_state[key] = default_list.copy()
-    if f"list_{key}" not in st.session_state:
-        st.session_state[f"list_{key}"] = {blk: [] for blk in default_list}
+st.markdown("""
+Arrastra los bloques para ordenar cada parámetro UTM, añade valores (separados por comas) y
+exporta la configuración a Excel.
 
-def reset_section(key, default_list):
-    st.session_state[key] = default_list.copy()
-    st.session_state[f"list_{key}"] = {blk: [] for blk in default_list}
+Cada bloque usa un **formulario** propio: al pulsar *Agregar* se añade el/los valores y el
+form se limpia, evitando errores de frontend.
+""")
 
-def add_values_callback(sec_key, blk, input_key):
-    txt = st.session_state[input_key]
-    if txt.strip():
-        nuevos = [v.strip() for v in txt.split(",") if v.strip()]
-        st.session_state[f"list_{sec_key}"][blk].extend(nuevos)
-        st.session_state[input_key] = ""      # ✅ limpiamos aquí (callback)
+# ---------- helpers ----------
+def init_section(sec_key, default_list):
+    if sec_key not in st.session_state:
+        st.session_state[sec_key] = default_list.copy()
+    if f"vals_{sec_key}" not in st.session_state:
+        st.session_state[f"vals_{sec_key}"] = {blk: [] for blk in default_list}
+
+def reset_section(sec_key, default_list):
+    st.session_state[sec_key] = default_list.copy()
+    st.session_state[f"vals_{sec_key}"] = {blk: [] for blk in default_list}
 
 def drag_section(title, sec_key, default_list):
     init_section(sec_key, default_list)
 
     st.subheader(title)
-    cols = st.columns([8, 1])
-    with cols[0]:
-        ordered = sort_items(
-            st.session_state[sec_key],
-            direction="horizontal",
-            key=f"sortable_{sec_key}"
-        )
-        if isinstance(ordered, list):
-            st.session_state[sec_key] = ordered
-    with cols[1]:
-        if st.button("🔄 Reset", key=f"reset_{sec_key}"):
-            reset_section(sec_key, default_list)
+    st.session_state[sec_key] = sort_items(
+        st.session_state[sec_key],
+        direction="horizontal",
+        key=f"sortable_{sec_key}"
+    ) or st.session_state[sec_key]
 
-    # ---- valores por bloque ----
+    if st.button("🔄 Reset", key=f"reset_{sec_key}"):
+        reset_section(sec_key, default_list)
+
+    # -- formulario de valores por bloque --
     for blk in st.session_state[sec_key]:
-        st.markdown(f"**{blk}**")
-        st.write(st.session_state[f"list_{sec_key}"][blk] or "*Sin valores*")
+        with st.form(f"form_{sec_key}_{blk}", clear_on_submit=True):
+            st.markdown(f"**{blk}** — {st.session_state[f'vals_{sec_key}'][blk] or 'sin valores'}")
+            txt = st.text_input("Añadir valores (coma separada)")
+            submitted = st.form_submit_button("➕ Agregar")
+            if submitted and txt.strip():
+                nuevos = [v.strip() for v in txt.split(",") if v.strip()]
+                st.session_state[f"vals_{sec_key}"][blk].extend(nuevos)
+                st.success(f"Añadido: {', '.join(nuevos)}")
 
-        input_key = f"{sec_key}_{blk}_txt"
-        st.text_input(
-            "Añadir valores (coma separada)",
-            key=input_key,
-            placeholder="rojo, azul, verde"
-        )
-        st.button(
-            "➕ Agregar",
-            key=f"btn_{sec_key}_{blk}",
-            on_click=add_values_callback,
-            kwargs=dict(sec_key=sec_key, blk=blk, input_key=input_key)
-        )
-
-# ------------ secciones ------------
+# ---------- secciones ----------
 drag_section("✳️ utm_campaign", "campaign_order",
              ["tipoAudiencia","pais","plataforma","producto",
               "funnel","objetivo","fecha","audiencia","region"])
 
-drag_section("📡 utm_source",  "source_order",
+drag_section("📡 utm_source", "source_order",
              ["google","facebook","instagram","newsletter","linkedin"])
 
-drag_section("🎯 utm_medium",  "medium_order",
+drag_section("🎯 utm_medium", "medium_order",
              ["organic","cpc","email","referral","social"])
 
-drag_section("🧩 utm_content", "content_order", ["color","version","posicion"])
-drag_section("🔍 utm_term",    "term_order",    ["keyword","matchtype"])
+drag_section("🧩 utm_content", "content_order",
+             ["color","version","posicion"])
 
-# ------------ exportar ------------
-def concat(sec):
-    return "_".join(st.session_state.get(sec, []))
+drag_section("🔍 utm_term", "term_order",
+             ["keyword","matchtype"])
+
+# ---------- export ----------
+st.markdown("---")
+st.subheader("📁 Exportar a Excel")
+
+def _join(sec): return "_".join(st.session_state[sec])
 
 def build_val_sheet():
     cols = {}
     for sec in ["campaign_order","source_order","medium_order","content_order","term_order"]:
         col = []
         for blk in st.session_state[sec]:
-            vals = st.session_state[f"list_{sec}"][blk] or [""]
+            vals = st.session_state[f"vals_{sec}"][blk] or [""]
             col.extend([blk] + vals + [""])
         cols[sec.replace("_order","")] = col
-    m = max(len(v) for v in cols.values())
+    max_len = max(len(v) for v in cols.values())
     for k,v in cols.items():
-        v.extend([""]*(m-len(v)))
+        v.extend([""]*(max_len-len(v)))
     return pd.DataFrame(cols)
 
-st.markdown("---")
 if st.button("📥 Generar Excel"):
     hoja1 = pd.DataFrame([{
-        "utm_campaign": concat("campaign_order"),
-        "utm_source": concat("source_order"),
-        "utm_medium": concat("medium_order"),
-        "utm_content": concat("content_order"),
-        "utm_term": concat("term_order"),
+        "utm_campaign": _join("campaign_order"),
+        "utm_source": _join("source_order"),
+        "utm_medium": _join("medium_order"),
+        "utm_content": _join("content_order"),
+        "utm_term": _join("term_order"),
     }])
     hoja2 = build_val_sheet()
 
     buf = BytesIO()
-    with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
-        hoja1.to_excel(writer, index=False, sheet_name="estructura")
-        hoja2.to_excel(writer, index=False, sheet_name="valores")
+    with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
+        hoja1.to_excel(w, sheet_name="estructura", index=False)
+        hoja2.to_excel(w, sheet_name="valores", index=False)
     buf.seek(0)
-    st.download_button(
-        "⬇️ Descargar naming_config.xlsx",
-        data=buf,
-        file_name="naming_config.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+
+    st.download_button("⬇️ Descargar naming_config.xlsx",
+                       data=buf,
+                       file_name="naming_config.xlsx",
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
