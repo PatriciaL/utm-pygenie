@@ -1,10 +1,10 @@
-# Install Pillow's system dependencies
-RUN apt-get update && apt-get install -y \
-    libjpeg-dev \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+#Install Pillow's system dependencies
+#RUN apt-get update && apt-get install -y \
+    #libjpeg-dev \
+    #zlib1g-dev \
+    #&& rm -rf /var/lib/apt/lists/*
 
-#FROM python:3.10-slim
+FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1
 WORKDIR /app
