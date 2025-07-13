@@ -53,7 +53,7 @@ def add_block_callback(sec_key: str, input_key: str):
     if name:
         add_block(sec_key, name)
     st.session_state[input_key] = ""      # limpia el campo de texto
-    st.experimental_rerun()               # recarga → aparece en drag & drop
+    st.rerun()               # recarga → aparece en drag & drop
 
 def add_values_callback(sec_key: str):
     """Callback: añade valores al bloque seleccionado y limpia input."""
