@@ -1,94 +1,122 @@
 import streamlit as st
-import pandas as pd
 from streamlit_sortables import sort_items
-from io import BytesIO
+import pandas as pd
 
-st.set_page_config(page_title="Naming Builder", layout="wide")
+st.set_page_config(page_title="🧱 Naming Convention Builder", layout="wide")
+
 st.title("🧱 Configurador de Naming Convention para UTM")
+st.markdown("""
+Organiza tus parámetros UTM mediante bloques drag & drop, agrega valores personalizados y exporta la configuración como archivo Excel.
 
-# ---------- helpers ----------
-def init_sec(k, defaults):
-    if k not in st.session_state:
-        st.session_state[k] = defaults.copy()
-    if f"vals_{k}" not in st.session_state:
-        st.session_state[f"vals_{k}"] = {b: [] for b in defaults}
-    st.session_state.setdefault(f"new_{k}", "")
-    st.session_state.setdefault(f"sel_{k}", defaults[0])
-    st.session_state.setdefault(f"txt_{k}", "")
+### 🧭 Instrucciones rápidas
+- Arrastra los bloques horizontalmente para definir el orden.
+- En cada bloque puedes añadir varios valores separados por comas.
+- Los valores quedan almacenados y puedes exportarlos en la hoja “valores”.
+""")
 
-def add_block(k, name):
-    if name and name not in st.session_state[k]:
-        st.session_state[k].append(name)
-        st.session_state[f"vals_{k}"][name] = []
+# ---------- Inicializar sesión ----------
+params = {
+    "utm_campaign": ["producto", "pais", "fecha", "audiencia"],
+    "utm_source": ["google", "newsletter"],
+    "utm_medium": ["cpc", "email"],
+    "utm_content": ["color", "version", "posicion"],
+    "utm_term": ["keyword", "matchtype"]
+}
 
-def add_values(k):
-    blk = st.session_state[f"sel_{k}"]
-    txt = st.session_state[f"txt_{k}"]
-    if txt.strip():
-        vals = [v.strip() for v in txt.split(",") if v.strip()]
-        st.session_state[f"vals_{k}"][blk] += vals
-        st.session_state[f"vals_{k}"][blk] = list(dict.fromkeys(st.session_state[f"vals_{k}"][blk]))
-    st.session_state[f"txt_{k}"] = ""
+for key, blocks in params.items():
+    short_key = key.split("_")[1]
+    if short_key not in st.session_state:
+        st.session_state[short_key] = blocks.copy()
+    if f"vals_{short_key}" not in st.session_state:
+        st.session_state[f"vals_{short_key}"] = {blk: [] for blk in blocks}
+    if f"newblk_{short_key}" not in st.session_state:
+        st.session_state[f"newblk_{short_key}"] = ""
 
-def section(title, k, defaults):
-    init_sec(k, defaults)
-    st.markdown(f"### {title}")
-
-    # ---- Drag & drop (lista actual) ----
-    order_before = st.session_state[k]
-    order_after  = sort_items(order_before, direction="horizontal", key=f"drag_{k}") or order_before
-    st.session_state[k] = order_after
-    st.caption("Orden:", order_after)
-
-    # ---- Añadir bloque ----
-    st.text_input("Nuevo bloque", key=f"new_{k}", placeholder="ej.: promocion")
-    if st.button("Agregar bloque", key=f"btn_blk_{k}"):
-        add_block(k, st.session_state[f"new_{k}"].strip())
-        st.session_state[f"new_{k}"] = ""   # limpia box
-
-    # ---- Añadir valores ----
-    st.selectbox("Bloque destino", st.session_state[k], key=f"sel_{k}")
-    st.text_input("Valores (coma separada)", key=f"txt_{k}")
-    st.button("Agregar valores", key=f"btn_val_{k}", on_click=add_values, kwargs=dict(k=k))
-
-    with st.expander("Ver valores guardados"):
-        st.json(st.session_state[f"vals_{k}"])
-
-# ---------- secciones ----------
-section("utm_campaign", "campaign", ["producto","pais","fecha","audiencia","region"])
-section("utm_source",   "source",   ["google","facebook","instagram","newsletter","linkedin"])
-section("utm_medium",   "medium",   ["cpc","organic","email","referral","social"])
-section("utm_content",  "content",  ["color","version","posicion"])
-section("utm_term",     "term",     ["keyword","matchtype"])
-
-# ---------- export ----------
+# ---------- Función para construir valores como hoja ----------
 def build_val_df():
-    cols={}
-    for k in ["campaign","source","medium","content","term"]:
-        col=[]
+    cols = {}
+    for k in ["campaign", "source", "medium", "content", "term"]:
+        col = []
         for blk in st.session_state[k]:
-            col += [blk] + st.session_state[f"vals_{k}"][blk] + [""]
-        cols[k]=col
-    mx=max(len(v) for v in cols.values())
-    for v in cols.values(): v.extend([""]*(mx-len(v)))
+            col.append(blk)
+            values = st.session_state[f"vals_{k}"].get(blk, [])
+            if not isinstance(values, list):
+                values = [str(values)]
+            else:
+                values = [str(v) for v in values]
+            col.extend(values)
+            col.append("")  # separación visual
+        cols[k] = col
+
+    max_len = max(len(c) for c in cols.values())
+    for c in cols.values():
+        c.extend([""] * (max_len - len(c)))
     return pd.DataFrame(cols)
 
+# ---------- Función para crear cada sección ----------
+def section(title, key, default_blocks):
+    st.markdown(f"## ✳️ {title}")
+    col1, col2 = st.columns([8, 2])
+
+    # Agregar nuevo bloque manualmente
+    with col2:
+        new_blk = st.text_input("➕ Añadir nuevo bloque", key=f"newblk_{key}")
+        if st.button("Agregar", key=f"add_{key}"):
+            new_blks = [b.strip() for b in new_blk.split(",") if b.strip()]
+            for b in new_blks:
+                if b not in st.session_state[key]:
+                    st.session_state[key].append(b)
+                    st.session_state[f"vals_{key}"][b] = []
+            st.session_state[f"newblk_{key}"] = ""
+
+    # Drag and drop de bloques
+    with col1:
+        result = sort_items(st.session_state[key], direction="horizontal", key=f"sort_{key}")
+        if isinstance(result, list):
+            st.session_state[key] = result
+
+    # Mostrar y añadir valores asociados por bloque
+    for blk in st.session_state[key]:
+        st.markdown(f"#### 🔹 Valores en {blk}")
+        existing = st.session_state[f"vals_{key}"].get(blk, [])
+        if existing:
+            st.write(", ".join(existing))
+        new_val = st.text_input(f"Nuevos valores (coma separada) → {blk}", key=f"txt_{key}_{blk}")
+        if st.button("Añadir", key=f"btn_{key}_{blk}"):
+            vals = [v.strip() for v in new_val.split(",") if v.strip()]
+            st.session_state[f"vals_{key}"].setdefault(blk, []).extend(vals)
+            st.session_state[f"txt_{key}_{blk}"] = ""
+
+# ---------- Crear secciones ----------
+section("utm_campaign", "campaign", ["producto", "pais", "fecha", "audiencia"])
+section("utm_source", "source", ["google", "newsletter"])
+section("utm_medium", "medium", ["cpc", "email"])
+section("utm_content", "content", ["color", "version", "posicion"])
+section("utm_term", "term", ["keyword", "matchtype"])
+
+# ---------- Exportar configuración ----------
 st.markdown("---")
-if st.button("📥 Descargar Excel"):
+st.subheader("📁 Exportar a Excel")
+
+if st.button("⬇️ Descargar configuración"):
     df1 = pd.DataFrame([{
-        "utm_campaign":"_".join(st.session_state["campaign"]),
-        "utm_source"  :"_".join(st.session_state["source"]),
-        "utm_medium"  :"_".join(st.session_state["medium"]),
-        "utm_content" :"_".join(st.session_state["content"]),
-        "utm_term"    :"_".join(st.session_state["term"]),
+        "utm_campaign": "_".join(st.session_state["campaign"]),
+        "utm_source": "_".join(st.session_state["source"]),
+        "utm_medium": "_".join(st.session_state["medium"]),
+        "utm_content": "_".join(st.session_state["content"]),
+        "utm_term": "_".join(st.session_state["term"])
     }])
+
     df2 = build_val_df()
 
-    buf = BytesIO()
-    with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
-        df1.to_excel(w, index=False, sheet_name="estructura")
-        df2.to_excel(w, index=False, sheet_name="valores")
-    buf.seek(0)
-    st.download_button("⬇️ naming_config.xlsx", buf,
-                       file_name="naming_config.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    from io import BytesIO
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df1.to_excel(writer, index=False, sheet_name="configuracion")
+        df2.to_excel(writer, index=False, sheet_name="valores")
+    st.download_button(
+        label="📤 Descargar archivo Excel",
+        data=output.getvalue(),
+        file_name="naming_utm_config.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
