@@ -3,105 +3,94 @@ from streamlit_sortables import sort_items
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Naming Convention Builder", layout="wide")
-st.title("🧱 Configurador de Naming Convention para UTM")
+st.set_page_config(page_title="Naming Builder", layout="wide")
+st.title("🧱 Naming Convention UTM")
 
-st.markdown("""
-Arrastra los bloques para ordenar cada parámetro UTM, añade valores (separados por comas) y
-exporta la configuración a Excel.
+# ------- helpers -------
+def init_sec(key, defaults):
+    if key not in st.session_state:
+        st.session_state[key] = defaults.copy()
+    if f"vals_{key}" not in st.session_state:
+        st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
 
-Cada bloque usa un **formulario** propio: al pulsar *Agregar* se añade el/los valores y el
-form se limpia, evitando errores de frontend.
-""")
+def reset_sec(key, defaults):
+    st.session_state[key] = defaults.copy()
+    st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
 
-# ---------- helpers ----------
-def init_section(sec_key, default_list):
-    if sec_key not in st.session_state:
-        st.session_state[sec_key] = default_list.copy()
-    if f"vals_{sec_key}" not in st.session_state:
-        st.session_state[f"vals_{sec_key}"] = {blk: [] for blk in default_list}
-
-def reset_section(sec_key, default_list):
-    st.session_state[sec_key] = default_list.copy()
-    st.session_state[f"vals_{sec_key}"] = {blk: [] for blk in default_list}
-
-def drag_section(title, sec_key, default_list):
-    init_section(sec_key, default_list)
+def section(title, key, defaults):
+    init_sec(key, defaults)
 
     st.subheader(title)
-    st.session_state[sec_key] = sort_items(
-        st.session_state[sec_key],
+    st.session_state[key] = sort_items(
+        st.session_state[key],
         direction="horizontal",
-        key=f"sortable_{sec_key}"
-    ) or st.session_state[sec_key]
+        key=f"sortable_{key}"
+    ) or st.session_state[key]
 
-    if st.button("🔄 Reset", key=f"reset_{sec_key}"):
-        reset_section(sec_key, default_list)
+    if st.button("Reset", key=f"reset_{key}"):
+        reset_sec(key, defaults)
 
-    # -- formulario de valores por bloque --
-    for blk in st.session_state[sec_key]:
-        with st.form(f"form_{sec_key}_{blk}", clear_on_submit=True):
-            st.markdown(f"**{blk}** — {st.session_state[f'vals_{sec_key}'][blk] or 'sin valores'}")
-            txt = st.text_input("Añadir valores (coma separada)")
-            submitted = st.form_submit_button("➕ Agregar")
-            if submitted and txt.strip():
-                nuevos = [v.strip() for v in txt.split(",") if v.strip()]
-                st.session_state[f"vals_{sec_key}"][blk].extend(nuevos)
-                st.success(f"Añadido: {', '.join(nuevos)}")
+    st.write("Orden actual:", st.session_state[key])
 
-# ---------- secciones ----------
-drag_section("✳️ utm_campaign", "campaign_order",
-             ["tipoAudiencia","pais","plataforma","producto",
-              "funnel","objetivo","fecha","audiencia","region"])
+    # ---- formulario externo estable ----
+    st.markdown("**Añadir valores**")
+    blk = st.selectbox("Bloque", st.session_state[key], key=f"sel_{key}")
+    txt = st.text_input("Valores (coma separada)", key=f"txt_{key}")
+    if st.button("Agregar", key=f"add_{key}") and txt.strip():
+        nuevos = [v.strip() for v in txt.split(",") if v.strip()]
+        st.session_state[f"vals_{key}"][blk].extend(nuevos)
+        st.session_state[f"txt_{key}"] = ""   # limpia
+        st.success(f"Añadidos a {blk}: {', '.join(nuevos)}")
 
-drag_section("📡 utm_source", "source_order",
-             ["google","facebook","instagram","newsletter","linkedin"])
+    with st.expander("Ver valores guardados"):
+        st.json(st.session_state[f"vals_{key}"])
 
-drag_section("🎯 utm_medium", "medium_order",
-             ["organic","cpc","email","referral","social"])
+# ------- secciones -------
+section("utm_campaign", "campaign",
+        ["producto","pais","fecha","audiencia"])
+section("utm_source", "source",
+        ["google","facebook","instagram","newsletter"])
+section("utm_medium", "medium",
+        ["organic","cpc","email","social"])
+section("utm_content", "content",
+        ["color","version","posicion"])
+section("utm_term", "term",
+        ["keyword","matchtype"])
 
-drag_section("🧩 utm_content", "content_order",
-             ["color","version","posicion"])
-
-drag_section("🔍 utm_term", "term_order",
-             ["keyword","matchtype"])
-
-# ---------- export ----------
+# ------- export -------
 st.markdown("---")
-st.subheader("📁 Exportar a Excel")
-
-def _join(sec): return "_".join(st.session_state[sec])
-
-def build_val_sheet():
-    cols = {}
-    for sec in ["campaign_order","source_order","medium_order","content_order","term_order"]:
-        col = []
-        for blk in st.session_state[sec]:
-            vals = st.session_state[f"vals_{sec}"][blk] or [""]
-            col.extend([blk] + vals + [""])
-        cols[sec.replace("_order","")] = col
-    max_len = max(len(v) for v in cols.values())
-    for k,v in cols.items():
-        v.extend([""]*(max_len-len(v)))
-    return pd.DataFrame(cols)
-
-if st.button("📥 Generar Excel"):
-    hoja1 = pd.DataFrame([{
-        "utm_campaign": _join("campaign_order"),
-        "utm_source": _join("source_order"),
-        "utm_medium": _join("medium_order"),
-        "utm_content": _join("content_order"),
-        "utm_term": _join("term_order"),
+if st.button("Exportar Excel"):
+    df1 = pd.DataFrame([{
+        "utm_campaign": "_".join(st.session_state["campaign"]),
+        "utm_source"  : "_".join(st.session_state["source"]),
+        "utm_medium"  : "_".join(st.session_state["medium"]),
+        "utm_content" : "_".join(st.session_state["content"]),
+        "utm_term"    : "_".join(st.session_state["term"]),
     }])
-    hoja2 = build_val_sheet()
+
+    # hoja 2 vertical
+    def col(sec):
+        out=[]
+        for b in st.session_state[sec]:
+            out += [b]+st.session_state[f"vals_{sec}"][b]+[""]
+        return out
+    cols = {
+        "campaign": col("campaign"),
+        "source"  : col("source"),
+        "medium"  : col("medium"),
+        "content" : col("content"),
+        "term"    : col("term")
+    }
+    m = max(len(v) for v in cols.values())
+    for k,v in cols.items():
+        v.extend([""]*(m-len(v)))
+    df2 = pd.DataFrame(cols)
 
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
-        hoja1.to_excel(w, sheet_name="estructura", index=False)
-        hoja2.to_excel(w, sheet_name="valores", index=False)
+        df1.to_excel(w, sheet_name="estructura", index=False)
+        df2.to_excel(w, sheet_name="valores",     index=False)
     buf.seek(0)
-
-    st.download_button("⬇️ Descargar naming_config.xlsx",
-                       data=buf,
-                       file_name="naming_config.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    st.download_button("Descargar naming.xlsx", buf,
+                       "naming_config.xlsx",
+                       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
