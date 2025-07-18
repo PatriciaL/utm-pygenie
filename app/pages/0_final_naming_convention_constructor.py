@@ -12,10 +12,10 @@ st.set_page_config(
     page_icon="🧙",
     layout="centered"
 )
-st.title("Configurador de Naming Convention para UTM que necesitas")
+st.title("Configurador de Naming Convention para UTM's")
 
 st.markdown("""
-**¿Cómo funciona?
+**¿Cómo funciona?**
 
 Arrastra los bloques de cada parámetro UTM, añade valores personalizados, y exporta la configuración como Excel.
 
