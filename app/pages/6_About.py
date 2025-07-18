@@ -7,7 +7,7 @@ st.set_page_config(page_title="Sobre la herramienta", layout="centered")
 st.title("🧙 Sobre esta herramienta")
 
 # ---------------- Imagen de cabecera ----------------
-st.image("about_image.png", use_column_width=True)
+st.image("about_image.png", use_container_width=True)
 
 # ---------------- Descripción ----------------
 st.markdown("""
