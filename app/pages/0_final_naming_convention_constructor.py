@@ -6,12 +6,12 @@ from io import BytesIO
 # ------------------------------------------------------------------
 # Configuración de página
 # ------------------------------------------------------------------
-st.set_page_config(
-    page_title="Naming Convention Creator", 
-    page_icon="🧙"
-    layout="wide"
-    )
 
+st.set_page_config(
+    page_title="Naming Convention Creator",
+    page_icon="🧙",
+    layout="centered"
+)
 st.title("Configurador de Naming Convention para UTM que necesitas")
 
 st.markdown("""
