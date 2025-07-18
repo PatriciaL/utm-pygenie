@@ -29,7 +29,7 @@ st.markdown(
 )
 
 # ---------- 3. Cabecera con logo ----------
-logo = Image.open("components/utm_genie_logo_transparent_light.png")
+logo = Image.open("components\utm_genie_logo_genie_version.png")
 col1, col2 = st.columns([1, 4])
 with col1:
     st.image(logo, width=100)
