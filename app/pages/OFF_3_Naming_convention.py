@@ -6,13 +6,22 @@ st.set_page_config(page_title="Naming Convention Builder", layout="wide")
 st.title("Naming Convention Builder")
 
 st.markdown("""
-Este módulo te permite crear tu propio nombrado de campañas para que puedas personalizar tus parámetros UTM. Utiliza los bloques *drag & drop*, introduce tus propios campos. También puedes exportarlo a CSV ¡listo para llevar!.
+Este módulo te permite crear tu propio nombrado de campañas para que puedas personalizar tus parámetros UTM. Utiliza los bloques *drag & drop*, y luego exporta a CSV ¡listo para llevar!.
 
-👉Reordena los elementos en cada sección para definir la estructura que prefieras.  
-👉 Puedes añadir elementos personalizados de acuerdo a tu negocio.  
-👉 Al final puedes exportar la configuración como archivo `.csv`.
+**¿Cómo funciona?**
+1.**Drag & Drop**: Arrastra y suelta los elementos para definir los componentes de tus atributos UTM.
+2.**Personalización**: Puedes añadir tus propios valores personalizados
+3.**Exporta**: Al finalizar, exporta la configuración como un archivo CSV
 
-**ℹ️ Tipos de parámetros UTM:**
+**¿Por qué es importante?**
+Un nombrado de campañas consistente y bien estructurado te permite:
+- Analizar el rendimiento de tus campañas de manera más efectiva.
+- Identificar patrones y tendencias de tus acciones de marketing.
+- Facilitar la segmentación y el análisis de datos.
+- Mejorar la colaboración entre equipos al tener un estándard claro.
+
+**¿Qué tipos de parámetros podemos definir?**
+
 - `utm_campaign`: definimos el nombre de campaña. A más información demos mejor.
 - `utm_source`: fuente del tráfico (GA4: google, facebook...)
 - `utm_medium`: canal (GA4: cpc, email, organic...)
