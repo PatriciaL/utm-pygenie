@@ -6,15 +6,26 @@ from io import BytesIO
 # ------------------------------------------------------------------
 # Configuración de página
 # ------------------------------------------------------------------
-st.set_page_config(page_title="Naming Builder UTM", layout="wide")
-st.title("🧱 Configurador de Naming Convention para UTM")
+st.set_page_config(
+    page_title="Naming Convention Creator", 
+    page_icon="🧙"
+    layout="wide"
+    )
+
+st.title("Configurador de Naming Convention para UTM que necesitas")
 
 st.markdown("""
+**¿Cómo funciona?
+
 Arrastra los bloques de cada parámetro UTM, añade valores personalizados, y exporta la configuración como Excel.
 
-- ✏️ **Nuevo bloque** → escribe un nombre y pulsa **Agregar bloque**  
-- ➕ **Añadir valores** → selecciona el bloque y añade valores separados por comas  
-- 📤 **Exportar** → descarga un archivo Excel con estructura y valores
+A continuación, te explicamos cómo utilizar la herramienta:
+
+Verás que hay varias funcionalidades disponibles:
+-  **Arrastra los bloques y reordena** → con este drag and drop podras cambiar el orden de los bloques que integran cada UTM.
+-  **Nuevo bloque** → te permite agregar nuevos bloque.Escribe un nombre y pulsa **Agregar bloque**  para agregarlo al campo
+-  **Añadir valores** → selecciona el bloque y añade valores separados por comas para los desplegables que integrarán tu configurador
+-  **Exportar** → descarga un archivo Excel con estructura, valores y llévatelo contigo.
 """)
 
 # ------------------------------------------------------------------
