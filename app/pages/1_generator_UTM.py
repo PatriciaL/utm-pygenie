@@ -3,24 +3,30 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from style import apply_style
 
 import streamlit as st
-import re, itertools, base64
+import re, itertools
 from io import BytesIO
 from urllib.parse import urlencode
-from PIL import Image
 import pandas as pd
 
 st.set_page_config(page_title="UTM Genie — Generador", page_icon="🧙", layout="centered")
 apply_style()
 
 # ── Cabecera ──────────────────────────────────────────────────────────
-logo_path = "components/utm_genie_logo_genie_version.png"
-col1, col2 = st.columns([1, 5])
-with col1:
-    if os.path.exists(logo_path):
-        st.image(Image.open(logo_path), width=72)
-with col2:
-    st.markdown("# UTM Genie")
-    st.markdown('<p style="color:#71717A;font-size:0.8rem;margin-top:-8px;letter-spacing:0.04em">Generador de URLs con parámetros UTM</p>', unsafe_allow_html=True)
+st.markdown("""
+<div style="margin-bottom:28px;padding-bottom:20px;border-bottom:1.5px solid #E4E4E7">
+  <div style="font-family:'Sora',sans-serif;font-size:0.6rem;font-weight:500;
+              letter-spacing:0.2em;text-transform:uppercase;color:#71717A;margin-bottom:8px">
+    UTM Genie
+  </div>
+  <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:600;
+              letter-spacing:-0.04em;color:#1A1A1A;line-height:1.1;margin-bottom:10px">
+    Generador de URLs
+  </div>
+  <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#71717A;letter-spacing:0.01em">
+    Crea URLs con parámetros UTM correctamente formateados
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Toggle modo ───────────────────────────────────────────────────────
 modo = st.radio("", ["Individual", "Masivo"], horizontal=True, label_visibility="collapsed")
