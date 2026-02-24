@@ -51,6 +51,8 @@ def add_block_cb(key):
     if name and name not in st.session_state[f"blocks_{key}"]:
         st.session_state[f"blocks_{key}"].append(name)
         st.session_state[f"vals_{key}"][name] = []
+        # Forzar re-render del sort_items para que aparezca el nuevo bloque
+        st.session_state[f"reset_count_{key}"] += 1
     st.session_state[f"newblk_{key}"] = ""
 
 def delete_block(key, blk):
