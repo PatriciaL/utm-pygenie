@@ -1,101 +1,77 @@
-# UTM Genie - Generador de URLs con UTM (Individual + Masivo)
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from style import apply_style
 
 import streamlit as st
-import re
-import itertools
-import os
-import base64
+import re, itertools, base64
 from io import BytesIO
 from urllib.parse import urlencode
 from PIL import Image
 import pandas as pd
 
-# ---------- 1. Configuración de la página ----------
-st.set_page_config(
-    page_title="UTM Genie - Generador de URLs",
-    page_icon="🧙",
-    layout="centered"
-)
+st.set_page_config(page_title="UTM Genie — Generador", page_icon="🧙", layout="centered")
+apply_style()
 
-# ---------- 2. Cargar favicon ----------
-favicon_path = "components/utm_genie_favicon_64x64.png"
-if os.path.exists(favicon_path):
-    with open(favicon_path, "rb") as f:
-        favicon_base64 = base64.b64encode(f.read()).decode()
-    st.markdown(
-        f"""<head><link rel="icon" type="image/png" href="data:image/png;base64,{favicon_base64}"></head>""",
-        unsafe_allow_html=True
-    )
-
-# ---------- 3. Cabecera con logo ----------
+# ── Cabecera ──────────────────────────────────────────────────────────
 logo_path = "components/utm_genie_logo_genie_version.png"
-col1, col2 = st.columns([1, 4])
+col1, col2 = st.columns([1, 5])
 with col1:
     if os.path.exists(logo_path):
-        st.image(Image.open(logo_path), width=100)
-    else:
-        st.markdown("🧙")
+        st.image(Image.open(logo_path), width=72)
 with col2:
-    st.markdown("## 🔧 Generador de URLs con UTM")
+    st.markdown("# UTM Genie")
+    st.markdown('<p style="color:#71717A;font-size:0.8rem;margin-top:-8px;letter-spacing:0.04em">Generador de URLs con parámetros UTM</p>', unsafe_allow_html=True)
 
-# ---------- 4. Toggle de modo ----------
-modo = st.radio("Modo", ["🔗 Individual", "⚡ Masivo"], horizontal=True, label_visibility="collapsed")
+# ── Toggle modo ───────────────────────────────────────────────────────
+modo = st.radio("", ["Individual", "Masivo"], horizontal=True, label_visibility="collapsed")
 st.markdown("---")
 
-# ============================================================
-# FUNCIONES COMPARTIDAS
-# ============================================================
+# ── Helpers ───────────────────────────────────────────────────────────
+def is_valid_utm(v):
+    return bool(re.match(r"^[a-zA-Z0-9_\-]+$", v))
 
-def is_valid_utm(value):
-    return bool(re.match(r"^[a-zA-Z0-9_\-]+$", value))
-
-def parse_values(raw: str) -> list:
-    if not raw or not raw.strip():
-        return []
+def parse_values(raw):
+    if not raw or not raw.strip(): return []
     return [v.strip() for v in raw.split(",") if v.strip()]
 
-def get_naming_values(sec_key: str) -> str:
-    """
-    Lee los valores configurados en el Naming Convention (session_state)
-    y los devuelve como string separado por comas, listo para los inputs del generador.
-    """
-    if sec_key not in st.session_state:
-        return ""
-    all_vals = []
-    for blk in st.session_state[sec_key]:
-        all_vals.extend(st.session_state.get(f"vals_{sec_key}", {}).get(blk, []))
-    unique = list(dict.fromkeys(all_vals))
-    return ", ".join(unique)
+def get_naming_values(sec_key):
+    blocks_key = f"blocks_{sec_key}" if f"blocks_{sec_key}" in st.session_state else sec_key
+    vals_key   = f"vals_{sec_key}"
+    blocks     = st.session_state.get(blocks_key, [])
+    all_vals   = []
+    for blk in blocks:
+        all_vals.extend(st.session_state.get(vals_key, {}).get(blk, []))
+    return ", ".join(list(dict.fromkeys(all_vals)))
 
-# ============================================================
+# ═══════════════════════════════════════════════════════════════════
 # MODO INDIVIDUAL
-# ============================================================
+# ═══════════════════════════════════════════════════════════════════
+if modo == "Individual":
 
-if modo == "🔗 Individual":
+    def field(label, key, required=False, hint="", example=""):
+        tag = " *" if required else ""
+        val = st.text_input(f"{label}{tag}", key=key, help=hint)
+        if val and not is_valid_utm(val):
+            st.markdown('<p style="color:#E11D48;font-size:0.75rem;margin-top:-8px">Solo letras, números, guiones y guiones bajos.</p>', unsafe_allow_html=True)
+        if example:
+            st.caption(f"ej. {example}")
+        return val.strip() if val else ""
 
-    def validated_input(label, key, help_text="", example_text=""):
-        value = st.text_input(label, key=key, help=help_text)
-        if value and not is_valid_utm(value):
-            st.warning("⚠️ Solo se permiten letras, números, guiones y guiones bajos.")
-        if example_text:
-            st.caption(f"💡 Ejemplo: `{example_text}`")
-        return value.strip() if value else ""
-
-    with st.expander("⚙️ Personalizar ejemplos"):
+    with st.expander("Personalizar ejemplos"):
         examples = {
-            "utm_source":   st.text_input("Ejemplo para utm_source",   "newsletter, facebook"),
-            "utm_medium":   st.text_input("Ejemplo para utm_medium",   "email, cpc"),
-            "utm_campaign": st.text_input("Ejemplo para utm_campaign", "lanzamiento2025"),
-            "utm_term":     st.text_input("Ejemplo para utm_term",     "zapatos+rojos"),
-            "utm_content":  st.text_input("Ejemplo para utm_content",  "banner_azul"),
+            "utm_source":   st.text_input("utm_source",   "newsletter, facebook",  key="ex_source"),
+            "utm_medium":   st.text_input("utm_medium",   "email, cpc",            key="ex_medium"),
+            "utm_campaign": st.text_input("utm_campaign", "lanzamiento2025",        key="ex_campaign"),
+            "utm_term":     st.text_input("utm_term",     "zapatos+rojos",          key="ex_term"),
+            "utm_content":  st.text_input("utm_content",  "banner_azul",            key="ex_content"),
         }
 
     base_url     = st.text_input("URL base", "https://tusitio.com")
-    utm_source   = validated_input("utm_source *",   "utm_source",   help_text="Fuente del tráfico (obligatorio)",  example_text=examples["utm_source"])
-    utm_medium   = validated_input("utm_medium *",   "utm_medium",   help_text="Canal o medio (obligatorio)",       example_text=examples["utm_medium"])
-    utm_campaign = validated_input("utm_campaign *", "utm_campaign", help_text="Campaña específica (obligatorio)",  example_text=examples["utm_campaign"])
-    utm_term     = validated_input("utm_term",       "utm_term",     help_text="Palabra clave (opcional)",          example_text=examples["utm_term"])
-    utm_content  = validated_input("utm_content",    "utm_content",  help_text="Contenido del anuncio (opcional)",  example_text=examples["utm_content"])
+    utm_source   = field("utm_source",   "utm_source",   required=True,  hint="Fuente del tráfico",         example=examples["utm_source"])
+    utm_medium   = field("utm_medium",   "utm_medium",   required=True,  hint="Canal o medio",              example=examples["utm_medium"])
+    utm_campaign = field("utm_campaign", "utm_campaign", required=True,  hint="Nombre de la campaña",       example=examples["utm_campaign"])
+    utm_term     = field("utm_term",     "utm_term",     required=False, hint="Palabra clave (opcional)",   example=examples["utm_term"])
+    utm_content  = field("utm_content",  "utm_content",  required=False, hint="Variante del anuncio (opc)", example=examples["utm_content"])
 
     params = {k: v for k, v in {
         "utm_source": utm_source, "utm_medium": utm_medium, "utm_campaign": utm_campaign,
@@ -103,78 +79,69 @@ if modo == "🔗 Individual":
     }.items() if v}
 
     if st.button("Generar URL", type="primary"):
-        missing = [k for k in ["utm_source", "utm_medium", "utm_campaign"] if not params.get(k)]
-        invalid = [k for k, v in params.items() if not is_valid_utm(v)]
+        missing = [k for k in ["utm_source","utm_medium","utm_campaign"] if not params.get(k)]
+        invalid = [k for k,v in params.items() if not is_valid_utm(v)]
         if missing:
-            st.error(f"❌ Faltan campos obligatorios: {', '.join(missing)}")
+            st.error(f"Faltan campos obligatorios: {', '.join(missing)}")
         elif invalid:
-            st.error(f"❌ Caracteres no válidos en: {', '.join(invalid)}")
+            st.error(f"Caracteres no válidos en: {', '.join(invalid)}")
         else:
             st.session_state["final_url"] = f"{base_url}?{urlencode(params)}"
             st.balloons()
 
     if "final_url" in st.session_state:
-        final_url = st.session_state["final_url"]
-        st.success("✅ URL generada:")
-        st.code(final_url)
-        st.link_button("🌐 Abrir URL", final_url)
-        st.download_button("📥 Descargar como CSV", data=f"url\n{final_url}", file_name="utm_url.csv", mime="text/csv")
+        url = st.session_state["final_url"]
+        st.success("URL generada")
+        st.code(url)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.link_button("Abrir URL", url)
+        with c2:
+            st.download_button("Descargar CSV", data=f"url\n{url}", file_name="utm_url.csv", mime="text/csv")
 
 
-# ============================================================
+# ═══════════════════════════════════════════════════════════════════
 # MODO MASIVO
-# ============================================================
-
+# ═══════════════════════════════════════════════════════════════════
 else:
-    # --- Leer valores del Naming Convention si existen ---
     nc_source   = get_naming_values("source")
     nc_medium   = get_naming_values("medium")
     nc_campaign = get_naming_values("campaign")
     nc_content  = get_naming_values("content")
     nc_term     = get_naming_values("term")
-
-    has_naming = any([nc_source, nc_medium, nc_campaign])
+    has_naming  = any([nc_source, nc_medium, nc_campaign])
 
     if has_naming:
-        st.info("✅ Se han cargado los valores de tu **Naming Convention**. Puedes editarlos antes de generar.")
+        st.info("Valores cargados desde tu Naming Convention. Puedes editarlos antes de generar.")
     else:
-        st.markdown("Define valores múltiples separados por comas. Se generarán **todas las combinaciones posibles**.")
-        st.page_link("pages/3_final_naming_convention_constructor.py", label="🧙 Configura primero tu Naming Convention", icon="➡️")
+        st.markdown('<p style="color:#71717A;font-size:0.85rem">Separa los valores con comas — se generarán todas las combinaciones posibles.</p>', unsafe_allow_html=True)
+        st.page_link("pages/3_final_naming_convention_constructor.py", label="Configura tu Naming Convention primero")
 
-    base_url = st.text_input("🌐 URL base", "https://tusitio.com")
+    base_url = st.text_input("URL base", "https://tusitio.com")
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("#### Obligatorios")
+        st.markdown("## Obligatorios")
         sources_raw   = st.text_input("utm_source *",   value=nc_source,   placeholder="google, facebook, instagram")
         mediums_raw   = st.text_input("utm_medium *",   value=nc_medium,   placeholder="cpc, email, social")
-
-        # utm_campaign: valor fijo O bloques concatenados
-        campaign_mode = st.radio(
-            "utm_campaign *",
-            ["Valor fijo", "Bloques del Naming Convention"],
-            horizontal=True,
-            help="Elige si prefieres un nombre de campaña directo o construirlo con los bloques configurados."
-        )
+        campaign_mode = st.radio("utm_campaign *", ["Valor fijo", "Bloques del Naming Convention"], horizontal=True)
         if campaign_mode == "Valor fijo":
             campaigns_raw = st.text_input("Valores de utm_campaign", placeholder="lanzamiento2025, black_friday")
         else:
-            # Construye combinaciones de bloques: producto_es_2025, etc.
-            if "campaign" in st.session_state:
-                blocks = st.session_state["campaign"]
+            if f"blocks_campaign" in st.session_state or "campaign" in st.session_state:
+                blocks = st.session_state.get("blocks_campaign", st.session_state.get("campaign", []))
                 block_values = {
                     blk: st.session_state.get("vals_campaign", {}).get(blk, [blk])
                     for blk in blocks
                 }
                 combos = ["_".join(c) for c in itertools.product(*[v if v else [b] for b, v in block_values.items()])]
                 campaigns_raw = ", ".join(combos)
-                st.caption(f"🔀 Combinaciones generadas: `{campaigns_raw}`")
+                st.caption(f"Combinaciones: {campaigns_raw}")
             else:
                 campaigns_raw = ""
-                st.warning("⚠️ Aún no has configurado bloques en el Naming Convention.")
-
+                st.warning("Aún no has configurado bloques en el Naming Convention.")
     with col2:
-        st.markdown("#### Opcionales")
+        st.markdown("## Opcionales")
         contents_raw = st.text_input("utm_content", value=nc_content, placeholder="banner_azul, banner_rojo")
         terms_raw    = st.text_input("utm_term",    value=nc_term,    placeholder="zapatos, zapatos+rojos")
 
@@ -184,7 +151,6 @@ else:
     contents  = parse_values(contents_raw) or [""]
     terms     = parse_values(terms_raw)    or [""]
 
-    # Preview en tiempo real
     if sources or mediums or campaigns:
         total = len(sources or [""]) * len(mediums or [""]) * len(campaigns or [""]) * len(contents) * len(terms)
         m1, m2, m3 = st.columns(3)
@@ -192,64 +158,51 @@ else:
         m2.metric("Medios",   len(mediums)   if mediums   else 0)
         m3.metric("Campañas", len(campaigns) if campaigns else 0)
         if sources and mediums and campaigns:
-            st.success(f"✅ Se generarán **{total} URLs** con todas las combinaciones.")
+            st.success(f"{total} URLs listas para generar.")
         else:
-            st.warning("⚠️ Completa utm_source, utm_medium y utm_campaign como mínimo.")
+            st.warning("Completa utm_source, utm_medium y utm_campaign.")
 
     st.markdown("---")
 
-    if st.button("⚡ Generar todas las URLs", type="primary", use_container_width=True):
+    if st.button("Generar todas las URLs", type="primary", use_container_width=True):
         if not sources or not mediums or not campaigns:
-            st.error("❌ Debes rellenar utm_source, utm_medium y utm_campaign como mínimo.")
+            st.error("Completa utm_source, utm_medium y utm_campaign.")
         else:
             rows = []
-            for source, medium, campaign, content, term in itertools.product(sources, mediums, campaigns, contents, terms):
-                params = {"utm_source": source, "utm_medium": medium, "utm_campaign": campaign}
-                if content: params["utm_content"] = content
-                if term:    params["utm_term"]    = term
-                rows.append({
-                    "utm_source": source, "utm_medium": medium, "utm_campaign": campaign,
-                    "utm_content": content or "", "utm_term": term or "",
-                    "url_final": f"{base_url}?{urlencode(params)}",
-                })
+            for src, med, cam, con, trm in itertools.product(sources, mediums, campaigns, contents, terms):
+                p = {"utm_source": src, "utm_medium": med, "utm_campaign": cam}
+                if con: p["utm_content"] = con
+                if trm: p["utm_term"]    = trm
+                rows.append({"utm_source": src, "utm_medium": med, "utm_campaign": cam,
+                              "utm_content": con or "", "utm_term": trm or "",
+                              "url_final": f"{base_url}?{urlencode(p)}"})
             st.session_state["bulk_urls"] = pd.DataFrame(rows)
-            st.success(f"🎉 {len(rows)} URLs generadas correctamente.")
+            st.success(f"{len(rows)} URLs generadas.")
 
     if "bulk_urls" in st.session_state:
         df = st.session_state["bulk_urls"]
-        st.markdown(f"### 📋 {len(df)} URLs generadas")
+        st.markdown(f"### {len(df)} URLs generadas")
 
         filtered_df = df.copy()
-        with st.expander("🔍 Filtrar resultados"):
-            f_source = st.multiselect("Filtrar por utm_source", options=df["utm_source"].unique())
-            f_medium = st.multiselect("Filtrar por utm_medium", options=df["utm_medium"].unique())
+        with st.expander("Filtrar resultados"):
+            f_source = st.multiselect("utm_source", options=df["utm_source"].unique())
+            f_medium = st.multiselect("utm_medium", options=df["utm_medium"].unique())
             if f_source: filtered_df = filtered_df[filtered_df["utm_source"].isin(f_source)]
             if f_medium: filtered_df = filtered_df[filtered_df["utm_medium"].isin(f_medium)]
 
-        st.dataframe(
-            filtered_df,
-            use_container_width=True,
-            column_config={"url_final": st.column_config.LinkColumn("URL Final")}
-        )
+        st.dataframe(filtered_df, use_container_width=True,
+                     column_config={"url_final": st.column_config.LinkColumn("URL Final")})
 
-        col_csv, col_xlsx = st.columns(2)
-        with col_csv:
-            st.download_button(
-                "📥 Descargar CSV",
-                data=filtered_df.to_csv(index=False).encode("utf-8"),
-                file_name="utm_urls_masivas.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-        with col_xlsx:
-            buffer = BytesIO()
-            with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-                filtered_df.to_excel(writer, index=False, sheet_name="URLs_UTM")
-            buffer.seek(0)
-            st.download_button(
-                "📥 Descargar Excel",
-                data=buffer,
-                file_name="utm_urls_masivas.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
+        c1, c2 = st.columns(2)
+        with c1:
+            st.download_button("Descargar CSV", data=filtered_df.to_csv(index=False).encode(),
+                               file_name="utm_urls_masivas.csv", mime="text/csv", use_container_width=True)
+        with c2:
+            buf = BytesIO()
+            with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
+                filtered_df.to_excel(w, index=False, sheet_name="URLs_UTM")
+            buf.seek(0)
+            st.download_button("Descargar Excel", data=buf,
+                               file_name="utm_urls_masivas.xlsx",
+                               mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                               use_container_width=True)
