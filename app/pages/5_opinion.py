@@ -61,9 +61,9 @@ def get_or_create_sheet(client, sheet_name="UTM Genie NPS"):
     return ws
 
 def save_response(ws, nombre, score, comentario):
-    if score <= 6:
+    if score <= 4:
         cat = "Detractor"
-    elif score <= 8:
+    elif score <= 6:
         cat = "Pasivo"
     else:
         cat = "Promotor"
@@ -133,7 +133,31 @@ with tab_form:
     nombre = st.text_input("Nombre o pseudónimo (opcional)", placeholder="Patricia")
 
     st.markdown("### ¿Con qué probabilidad recomendarías UTM Genie?")
-    st.caption("0 = Nada probable · 10 = Totalmente probable")
+    st.markdown("""
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:#FFE4E6;border:1.5px solid #FECDD3;border-radius:6px;padding:10px 14px">
+        <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;
+                    text-transform:uppercase;color:#E11D48;margin-bottom:4px">Detractor · 0-4</div>
+        <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#9F1239;line-height:1.5">
+          No lo recomendarías. Hay aspectos importantes que mejorar.
+        </div>
+      </div>
+      <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:6px;padding:10px 14px">
+        <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;
+                    text-transform:uppercase;color:#92400E;margin-bottom:4px">Pasivo · 5-6</div>
+        <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#92400E;line-height:1.5">
+          Neutral. La herramienta cumple pero no entusiasma.
+        </div>
+      </div>
+      <div style="background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:6px;padding:10px 14px">
+        <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;
+                    text-transform:uppercase;color:#16a34a;margin-bottom:4px">Promotor · 7-10</div>
+        <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#166534;line-height:1.5">
+          La recomendarías. Aporta valor real a tu trabajo.
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Selector visual de puntuación
     score_cols = st.columns(11)
@@ -152,9 +176,9 @@ with tab_form:
 
     nps_val = st.slider("", 0, 10, 8, label_visibility="collapsed")
 
-    if nps_val <= 6:
+    if nps_val <= 4:
         cat_color, cat_label = "#E11D48", "Detractor"
-    elif nps_val <= 8:
+    elif nps_val <= 6:
         cat_color, cat_label = "#92400E", "Pasivo"
     else:
         cat_color, cat_label = "#16a34a", "Promotor"
@@ -225,8 +249,8 @@ with tab_dash:
         df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
 
         # Calcular NPS
-        promotores  = (df["nps_score"] >= 9).sum()
-        detractores = (df["nps_score"] <= 6).sum()
+        promotores  = (df["nps_score"] >= 7).sum()
+        detractores = (df["nps_score"] <= 4).sum()
         pasivos     = len(df) - promotores - detractores
         nps_score   = round(((promotores - detractores) / len(df)) * 100)
         nps_color   = "#16a34a" if nps_score >= 50 else ("#92400E" if nps_score >= 0 else "#E11D48")
@@ -242,17 +266,17 @@ with tab_dash:
           <div style="background:#DCFCE7;border:1.5px solid #86EFAC;border-radius:8px;padding:16px 20px">
             <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#166534;margin-bottom:6px">Promotores</div>
             <div style="font-size:2rem;font-weight:700;color:#16a34a;font-family:'Sora',sans-serif;line-height:1">{promotores}</div>
-            <div style="font-size:0.7rem;color:#16a34a;margin-top:4px">{round(promotores/len(df)*100)}% · score 9-10</div>
+            <div style="font-size:0.7rem;color:#16a34a;margin-top:4px">{round(promotores/len(df)*100)}% · score 7-10</div>
           </div>
           <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:8px;padding:16px 20px">
             <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#92400E;margin-bottom:6px">Pasivos</div>
             <div style="font-size:2rem;font-weight:700;color:#92400E;font-family:'Sora',sans-serif;line-height:1">{pasivos}</div>
-            <div style="font-size:0.7rem;color:#92400E;margin-top:4px">{round(pasivos/len(df)*100)}% · score 7-8</div>
+            <div style="font-size:0.7rem;color:#92400E;margin-top:4px">{round(pasivos/len(df)*100)}% · score 5-6</div>
           </div>
           <div style="background:#FFE4E6;border:1.5px solid #FECDD3;border-radius:8px;padding:16px 20px">
             <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#9F1239;margin-bottom:6px">Detractores</div>
             <div style="font-size:2rem;font-weight:700;color:#E11D48;font-family:'Sora',sans-serif;line-height:1">{detractores}</div>
-            <div style="font-size:0.7rem;color:#E11D48;margin-top:4px">{round(detractores/len(df)*100)}% · score 0-6</div>
+            <div style="font-size:0.7rem;color:#E11D48;margin-top:4px">{round(detractores/len(df)*100)}% · score 0-4</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -286,7 +310,7 @@ with tab_dash:
         for score_v in range(11):
             count   = dist.get(score_v, 0)
             height  = int((count / max_val) * 80) if max_val > 0 else 0
-            color   = "#16a34a" if score_v >= 9 else ("#FBBF24" if score_v >= 7 else "#E11D48")
+            color   = "#16a34a" if score_v >= 7 else ("#FBBF24" if score_v >= 5 else "#E11D48")
             bars_html += f"""
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
               <div style="font-size:0.68rem;color:#52525B;font-weight:600">{count if count > 0 else ""}</div>
@@ -310,8 +334,8 @@ with tab_dash:
         for _, row in comentarios.iterrows():
             cat = row.get("categoria", "")
             score_v = int(row["nps_score"])
-            color = "#16a34a" if score_v >= 9 else ("#92400E" if score_v >= 7 else "#E11D48")
-            bg    = "#F0FDF4" if score_v >= 9 else ("#FFFBEB" if score_v >= 7 else "#FFF1F2")
+            color = "#16a34a" if score_v >= 7 else ("#92400E" if score_v >= 5 else "#E11D48")
+            bg    = "#F0FDF4" if score_v >= 7 else ("#FFFBEB" if score_v >= 5 else "#FFF1F2")
             fecha = row["timestamp"].strftime("%d/%m/%Y") if pd.notna(row["timestamp"]) else ""
             st.markdown(f"""
             <div style="background:{bg};border-radius:6px;padding:12px 16px;margin-bottom:8px;
