@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from io import BytesIO
 
-st.set_page_config(page_title="UTM Genie — Feedback", page_icon="🧙", layout="centered")
+st.set_page_config(page_title="UTM Genie — Feedback", page_icon="🧙", layout="centered", initial_sidebar_state="expanded")
 apply_style()
 
 st.markdown("""
@@ -86,18 +86,26 @@ def load_responses(ws):
 # ------------------------------------------------------------------
 
 SAMPLE_DATA = pd.DataFrame([
-    {"timestamp":"2025-01-10 09:12","nombre":"Ana M.","nps_score":9,"categoria":"Promotor","comentario":"Muy útil para el equipo, ahorra mucho tiempo"},
-    {"timestamp":"2025-01-12 11:34","nombre":"Carlos R.","nps_score":8,"categoria":"Pasivo","comentario":"Funciona bien, le faltaría integración con GA4"},
-    {"timestamp":"2025-01-15 16:20","nombre":"Lucía P.","nps_score":10,"categoria":"Promotor","comentario":"Perfecto, lo recomendaré a mi equipo de marketing"},
-    {"timestamp":"2025-01-18 10:05","nombre":"Anónimo","nps_score":5,"categoria":"Detractor","comentario":"A veces falla al importar el Excel"},
-    {"timestamp":"2025-01-20 14:45","nombre":"Marc T.","nps_score":9,"categoria":"Promotor","comentario":"El generador masivo es una pasada"},
-    {"timestamp":"2025-01-22 09:30","nombre":"Sara L.","nps_score":7,"categoria":"Pasivo","comentario":"Está bien pero le falta el modo oscuro"},
-    {"timestamp":"2025-01-25 17:10","nombre":"Anónimo","nps_score":10,"categoria":"Promotor","comentario":"Lo uso cada semana para mis campañas"},
-    {"timestamp":"2025-02-01 11:00","nombre":"Jordi V.","nps_score":6,"categoria":"Detractor","comentario":"Esperaba más opciones de personalización"},
-    {"timestamp":"2025-02-05 13:22","nombre":"Elena S.","nps_score":9,"categoria":"Promotor","comentario":"Muy intuitivo y bien diseñado"},
-    {"timestamp":"2025-02-10 10:15","nombre":"David F.","nps_score":8,"categoria":"Pasivo","comentario":"Bien, pero echo de menos un historial de URLs generadas"},
-    {"timestamp":"2025-02-14 16:40","nombre":"Anónimo","nps_score":10,"categoria":"Promotor","comentario":"El validador con corrección automática es brillante"},
-    {"timestamp":"2025-02-18 09:55","nombre":"Nuria G.","nps_score":9,"categoria":"Promotor","comentario":"Muy completo, gracias"},
+    {"timestamp":"2024-11-03 08:47","nombre":"Marta S.","nps_score":9,"categoria":"Promotor","comentario":"Llevaba meses buscando algo así. Lo hemos adoptado en todo el equipo de paid."},
+    {"timestamp":"2024-11-08 10:12","nombre":"Anónimo","nps_score":7,"categoria":"Promotor","comentario":"El generador masivo me ahorra fácil 2 horas a la semana."},
+    {"timestamp":"2024-11-14 16:33","nombre":"Rafa M.","nps_score":10,"categoria":"Promotor","comentario":"Herramienta imprescindible. El validador con corrección automática es lo mejor."},
+    {"timestamp":"2024-11-19 09:05","nombre":"Claudia B.","nps_score":4,"categoria":"Detractor","comentario":"Me costó entender el Naming Convention al principio, faltaría un tutorial en vídeo."},
+    {"timestamp":"2024-11-25 14:20","nombre":"Anónimo","nps_score":8,"categoria":"Promotor","comentario":"Muy bueno. Le añadiría la opción de guardar plantillas de campañas recurrentes."},
+    {"timestamp":"2024-12-02 11:45","nombre":"Iñigo R.","nps_score":10,"categoria":"Promotor","comentario":"Lo recomendé a tres compañeros la semana pasada. Facilísimo de usar."},
+    {"timestamp":"2024-12-09 17:02","nombre":"Anónimo","nps_score":5,"categoria":"Pasivo","comentario":"Cumple lo que promete pero esperaba más integraciones con herramientas de analytics."},
+    {"timestamp":"2024-12-15 10:38","nombre":"Laura P.","nps_score":9,"categoria":"Promotor","comentario":"El Excel de auditoría que genera el validador es perfecto para reportar a clientes."},
+    {"timestamp":"2024-12-20 09:14","nombre":"Tomàs V.","nps_score":7,"categoria":"Promotor","comentario":"Bien diseñado y rápido. El naming convention tarda un poco en entenderse pero vale la pena."},
+    {"timestamp":"2024-12-28 15:50","nombre":"Anónimo","nps_score":10,"categoria":"Promotor","comentario":"Lo uso cada lunes para preparar las campañas de la semana. Un 10."},
+    {"timestamp":"2025-01-06 08:30","nombre":"Silvia G.","nps_score":3,"categoria":"Detractor","comentario":"Tuve problemas al importar un Excel con más de 500 URLs. Se quedaba cargando."},
+    {"timestamp":"2025-01-10 12:17","nombre":"Anónimo","nps_score":9,"categoria":"Promotor","comentario":"Mucho mejor que las hojas de cálculo que usábamos antes. Y gratis."},
+    {"timestamp":"2025-01-16 16:44","nombre":"Jordi F.","nps_score":8,"categoria":"Promotor","comentario":"Muy completo. Agradecería poder exportar también a Google Sheets directamente."},
+    {"timestamp":"2025-01-21 09:58","nombre":"Anónimo","nps_score":10,"categoria":"Promotor","comentario":"El equipo entero lo ha adoptado en menos de una semana. Súper intuitivo."},
+    {"timestamp":"2025-01-27 14:05","nombre":"Neus A.","nps_score":6,"categoria":"Pasivo","comentario":"Está bien para lo básico. Le falta pulir algunos detalles en móvil."},
+    {"timestamp":"2025-02-03 10:22","nombre":"Anónimo","nps_score":9,"categoria":"Promotor","comentario":"Lo que más me gusta es el producto cartesiano automático en el generador masivo."},
+    {"timestamp":"2025-02-07 11:35","nombre":"Diego C.","nps_score":10,"categoria":"Promotor","comentario":"Diseño limpio, flujo claro, resultado perfecto. No le cambiaría nada."},
+    {"timestamp":"2025-02-12 08:48","nombre":"Anónimo","nps_score":8,"categoria":"Promotor","comentario":"Muy útil. Ojalá tuviera historial de URLs generadas para no repetir trabajo."},
+    {"timestamp":"2025-02-17 15:30","nombre":"Carla M.","nps_score":9,"categoria":"Promotor","comentario":"El validador detectó errores en campañas antiguas que teníamos sin saber. Genial."},
+    {"timestamp":"2025-02-21 09:10","nombre":"Anónimo","nps_score":10,"categoria":"Promotor","comentario":"Sencillo, rápido y profesional. Exactamente lo que necesitaba."},
 ])
 
 # ------------------------------------------------------------------
@@ -121,7 +129,7 @@ if use_sheets:
 # Tabs: Formulario / Dashboard / Configuración
 # ------------------------------------------------------------------
 
-tab_form, tab_dash, tab_config = st.tabs(["Enviar feedback", "Dashboard NPS", "Configuración"])
+tab_form, tab_dash = st.tabs(["Enviar feedback", "Dashboard NPS"])
 
 # ══════════════════════════════════════════════════════════
 # TAB 1 — Formulario
@@ -350,53 +358,3 @@ with tab_dash:
               <div style="font-family:'Sora',sans-serif;font-size:0.78rem;color:#52525B;line-height:1.55">{row["comentario"]}</div>
             </div>
             """, unsafe_allow_html=True)
-
-
-
-# ══════════════════════════════════════════════════════════
-# TAB 3 — Configuración Google Sheets
-# ══════════════════════════════════════════════════════════
-with tab_config:
-    st.markdown("### Conectar con Google Sheets")
-    st.markdown("""
-    <div style="background:#EEF2F7;border:1.5px solid #C5D3E8;border-radius:6px;padding:18px 22px;margin-bottom:20px">
-      <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;
-                  text-transform:uppercase;color:#3D5A80;margin-bottom:12px">Pasos de configuración</div>
-      <ol style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#52525B;line-height:2;padding-left:18px;margin:0">
-        <li>En Google Cloud Console, activa las APIs <strong>Google Sheets</strong> y <strong>Google Drive</strong></li>
-        <li>Crea una <strong>Service Account</strong> y descarga el JSON de credenciales</li>
-        <li>Crea un Google Sheet nuevo y compártelo con el email de la Service Account (editor)</li>
-        <li>En Streamlit Cloud, ve a <strong>Settings → Secrets</strong> y añade lo siguiente:</li>
-      </ol>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.code("""
-# .streamlit/secrets.toml
-
-sheet_name = "UTM Genie NPS"
-
-[gcp_service_account]
-type = "service_account"
-project_id = "tu-proyecto-id"
-private_key_id = "abc123..."
-private_key = "-----BEGIN RSA PRIVATE KEY-----\\n...\\n-----END RSA PRIVATE KEY-----\\n"
-client_email = "utm-genie-nps@tu-proyecto.iam.gserviceaccount.com"
-client_id = "123456789"
-auth_uri = "https://accounts.google.com/o/oauth2/auth"
-token_uri = "https://oauth2.googleapis.com/token"
-auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/..."
-    """, language="toml")
-
-    st.markdown("""
-    <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:6px;padding:14px 18px;
-                font-family:'Sora',sans-serif;font-size:0.78rem;color:#166534;margin-top:12px">
-      Una vez configurado, el dashboard mostrará datos en tiempo real y cada respuesta
-      del formulario se guardará automáticamente en el Sheet.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("### Dependencias requeridas")
-    st.code("gspread\ngoogle-auth", language="text")
-    st.caption("Añade estas líneas al requirements.txt")
