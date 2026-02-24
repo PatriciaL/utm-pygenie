@@ -3,29 +3,22 @@ from streamlit_sortables import sort_items
 import pandas as pd
 from io import BytesIO
 
-# ------------------------------------------------------------------
-# Configuración de página
-# ------------------------------------------------------------------
-
 st.set_page_config(
     page_title="Naming Convention Creator",
     page_icon="🧙",
     layout="centered"
 )
-st.title("Configurador de Naming Convention para UTM's")
+st.title("🧙 Configurador de Naming Convention")
 
 st.markdown("""
 **¿Cómo funciona?**
+Arrastra los bloques de cada parámetro UTM, añade valores personalizados y exporta la configuración.
+Cuando termines, ve al **Generador** — los valores se cargarán automáticamente. 🚀
 
-Arrastra los bloques de cada parámetro UTM, añade valores personalizados, y exporta la configuración como Excel.
-
-A continuación, te explicamos cómo utilizar la herramienta:
-
-Verás que hay varias funcionalidades disponibles:
--  **Arrastra los bloques y reordena** → con este drag and drop podras cambiar el orden de los bloques que integran cada UTM.
--  **Nuevo bloque** → te permite agregar nuevos bloque.Escribe un nombre y pulsa **Agregar bloque**  para agregarlo al campo
--  **Añadir valores** → selecciona el bloque y añade valores separados por comas para los desplegables que integrarán tu configurador
--  **Exportar** → descarga un archivo Excel con estructura, valores y llévatelo contigo.
+- 🔀 **Arrastra los bloques** para cambiar el orden
+- ➕ **Nuevo bloque** para añadir campos personalizados
+- 📥 **Añadir valores** para rellenar los desplegables
+- 📤 **Exportar** para descargar la configuración en Excel
 """)
 
 # ------------------------------------------------------------------
@@ -33,9 +26,6 @@ Verás que hay varias funcionalidades disponibles:
 # ------------------------------------------------------------------
 
 def init_sec(key: str, defaults: list):
-    """
-    Inicializa el estado de una sección (bloques ordenables y valores asociados).
-    """
     if key not in st.session_state:
         st.session_state[key] = defaults.copy()
     if f"vals_{key}" not in st.session_state:
@@ -48,9 +38,6 @@ def init_sec(key: str, defaults: list):
         st.session_state[f"newblk_{key}"] = ""
 
 def reset_sec(key: str, defaults: list):
-    """
-    Restaura el estado inicial de una sección (bloques y valores).
-    """
     st.session_state[key] = defaults.copy()
     st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
     st.session_state[f"sel_{key}"] = defaults[0]
@@ -58,17 +45,11 @@ def reset_sec(key: str, defaults: list):
     st.session_state[f"newblk_{key}"] = ""
 
 def add_block(sec_key: str, block_name: str):
-    """
-    Agrega un nuevo bloque a la sección si no existe.
-    """
     if block_name and block_name not in st.session_state[sec_key]:
         st.session_state[sec_key].append(block_name)
         st.session_state[f"vals_{sec_key}"][block_name] = []
 
 def add_block_callback(sec_key: str, input_key: str):
-    """
-    Callback: agrega un bloque, limpia el campo y recarga interfaz.
-    """
     name = st.session_state[input_key].strip()
     if name:
         add_block(sec_key, name)
@@ -76,32 +57,26 @@ def add_block_callback(sec_key: str, input_key: str):
     st.rerun()
 
 def add_values_callback(sec_key: str):
-    """
-    Callback: agrega valores al bloque seleccionado y limpia el input.
-    """
     blk = st.session_state[f"sel_{sec_key}"]
     txt = st.session_state[f"txt_{sec_key}"]
     if txt.strip():
-        # Separar valores por coma y limpiar
         vals = [v.strip() for v in txt.split(",") if v.strip()]
         st.session_state[f"vals_{sec_key}"][blk].extend(vals)
-        # Eliminar duplicados preservando el orden
         st.session_state[f"vals_{sec_key}"][blk] = list(dict.fromkeys(st.session_state[f"vals_{sec_key}"][blk]))
     st.session_state[f"txt_{sec_key}"] = ""
 
-# ------------------------------------------------------------------
-# Sección interactiva por parámetro UTM
-# ------------------------------------------------------------------
+def get_all_values(sec_key: str) -> list:
+    """Devuelve todos los valores únicos de todos los bloques de una sección."""
+    all_vals = []
+    for blk in st.session_state.get(sec_key, []):
+        all_vals.extend(st.session_state.get(f"vals_{sec_key}", {}).get(blk, []))
+    return list(dict.fromkeys(all_vals))  # sin duplicados, preservando orden
 
 def section(title: str, sec_key: str, defaults: list):
-    """
-    Renderiza una sección con drag & drop, input de valores, reset y exportación.
-    """
     init_sec(sec_key, defaults)
 
     st.markdown(f"## {title}")
-    
-    # Drag & Drop horizontal de bloques
+
     st.session_state[sec_key] = sort_items(
         st.session_state[sec_key],
         direction="horizontal",
@@ -114,7 +89,6 @@ def section(title: str, sec_key: str, defaults: list):
     if st.button("↩️ Reset sección", key=f"reset_{sec_key}"):
         reset_sec(sec_key, defaults)
 
-    # ---------- NUEVO BLOQUE ----------
     st.markdown("### ➕ Añadir nuevo bloque")
     newblk_key = f"newblk_{sec_key}"
     st.text_input("Nombre del bloque", key=newblk_key, placeholder="ej.: promocion")
@@ -123,7 +97,6 @@ def section(title: str, sec_key: str, defaults: list):
               on_click=add_block_callback,
               kwargs=dict(sec_key=sec_key, input_key=newblk_key))
 
-    # ---------- AÑADIR VALORES ----------
     st.markdown("### ➕ Añadir valores al bloque")
     st.selectbox("Bloque destino", st.session_state[sec_key], key=f"sel_{sec_key}")
     st.text_input("Valores (coma separada)", key=f"txt_{sec_key}", placeholder="valor1, valor2, valor3")
@@ -132,19 +105,23 @@ def section(title: str, sec_key: str, defaults: list):
               on_click=add_values_callback,
               kwargs=dict(sec_key=sec_key))
 
-    # Vista expandible de los valores
     with st.expander("🔍 Ver valores guardados"):
         st.json(st.session_state[f"vals_{sec_key}"])
+
+    # Preview de los valores que se enviarán al generador
+    preview_vals = get_all_values(sec_key)
+    if preview_vals:
+        st.caption(f"⚡ El generador masivo usará: `{', '.join(preview_vals)}`")
 
 # ------------------------------------------------------------------
 # Renderizado de las 5 secciones UTM
 # ------------------------------------------------------------------
 
 section("utm_campaign", "campaign", ["producto", "pais", "fecha", "audiencia", "region"])
-section("utm_source", "source", ["google", "facebook", "instagram", "newsletter", "linkedin"])
-section("utm_medium", "medium", ["cpc", "organic", "email", "referral", "social"])
-section("utm_content", "content", ["color", "version", "posicion"])
-section("utm_term", "term", ["keyword", "matchtype"])
+section("utm_source",   "source",   ["google", "facebook", "instagram", "newsletter", "linkedin"])
+section("utm_medium",   "medium",   ["cpc", "organic", "email", "referral", "social"])
+section("utm_content",  "content",  ["color", "version", "posicion"])
+section("utm_term",     "term",     ["keyword", "matchtype"])
 
 # ------------------------------------------------------------------
 # Exportar configuración a Excel
@@ -153,24 +130,18 @@ st.markdown("---")
 st.header("📁 Exportar configuración a Excel")
 
 def build_val_sheet():
-    """
-    Crea una hoja de valores: cada columna es un parámetro UTM,
-    y cada celda contiene bloques y sus valores verticalmente.
-    """
     cols = {}
     for sec in ["campaign", "source", "medium", "content", "term"]:
         col = []
         for blk in st.session_state[sec]:
             col += [blk] + st.session_state[f"vals_{sec}"][blk] + [""]
         cols[sec] = col
-    # Igualar longitud de columnas
     max_len = max(len(v) for v in cols.values())
     for v in cols.values():
         v.extend([""] * (max_len - len(v)))
     return pd.DataFrame(cols)
 
 if st.button("📥 Descargar Excel"):
-    # Hoja 1: estructura de los nombres
     df_struct = pd.DataFrame([{
         "utm_campaign": "_".join(st.session_state["campaign"]),
         "utm_source"  : "_".join(st.session_state["source"]),
@@ -178,8 +149,6 @@ if st.button("📥 Descargar Excel"):
         "utm_content" : "_".join(st.session_state["content"]),
         "utm_term"    : "_".join(st.session_state["term"]),
     }])
-
-    # Hoja 2: valores por sección
     df_vals = build_val_sheet()
 
     buffer = BytesIO()
@@ -194,3 +163,10 @@ if st.button("📥 Descargar Excel"):
         file_name="naming_config.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+# ------------------------------------------------------------------
+# CTA: ir al generador
+# ------------------------------------------------------------------
+st.markdown("---")
+st.success("✅ Cuando hayas configurado tus valores, ve al **Generador** y se cargarán automáticamente.")
+st.page_link("pages/1_generator_UTM.py", label="⚡ Ir al Generador Masivo", icon="🔧")
