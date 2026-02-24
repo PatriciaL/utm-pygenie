@@ -330,15 +330,18 @@ with tab_dash:
 
         bars_html = ""
         for score_v in range(11):
-            count   = dist.get(score_v, 0)
-            height  = int((count / max_val) * 80) if max_val > 0 else 0
-            color   = "#16a34a" if score_v >= 7 else ("#FBBF24" if score_v >= 5 else "#E11D48")
-            bars_html += f"""
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
-              <div style="font-size:0.68rem;color:#52525B;font-weight:600">{count if count > 0 else ""}</div>
-              <div style="width:100%;background:{color};border-radius:4px 4px 0 0;height:{height}px;min-height:{"4px" if count > 0 else "0"}"></div>
-              <div style="font-size:0.68rem;color:#71717A;font-family:'DM Mono',monospace">{score_v}</div>
-            </div>"""
+            count    = dist.get(score_v, 0)
+            height   = int((count / max_val) * 80) if max_val > 0 else 0
+            color    = "#16a34a" if score_v >= 7 else ("#FBBF24" if score_v >= 5 else "#E11D48")
+            count_lbl = str(count) if count > 0 else ""
+            min_h    = "4px" if count > 0 else "0"
+            bars_html += (
+                f'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
+                f'<div style="font-size:0.68rem;color:#52525B;font-weight:600">{count_lbl}</div>'
+                f'<div style="width:100%;background:{color};border-radius:4px 4px 0 0;height:{height}px;min-height:{min_h}"></div>'
+                f'<div style="font-size:0.68rem;color:#71717A;font-family:DM Mono,monospace">{score_v}</div>'
+                f'</div>'
+            )
 
         st.markdown(f"""
         <div style="background:#FAFAFA;border:1.5px solid #E4E4E7;border-radius:8px;padding:20px;margin-bottom:24px">
