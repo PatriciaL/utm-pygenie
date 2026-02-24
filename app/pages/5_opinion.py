@@ -76,10 +76,24 @@ def save_response(ws, nombre, score, comentario):
     ])
 
 def load_responses(ws):
-    data = ws.get_all_records()
-    return pd.DataFrame(data) if data else pd.DataFrame(
-        columns=["timestamp","nombre","nps_score","categoria","comentario"]
-    )
+    try:
+        data = ws.get_all_records(expected_headers=["timestamp","nombre","nps_score","categoria","comentario"])
+        df = pd.DataFrame(data) if data else pd.DataFrame(
+            columns=["timestamp","nombre","nps_score","categoria","comentario"]
+        )
+        # Filtrar filas completamente vacías
+        df = df[df["timestamp"].astype(str).str.strip() != ""]
+        return df
+    except Exception:
+        # Fallback: leer como valores raw
+        rows = ws.get_all_values()
+        if len(rows) <= 1:
+            return pd.DataFrame(columns=["timestamp","nombre","nps_score","categoria","comentario"])
+        headers = rows[0]
+        data    = rows[1:]
+        df = pd.DataFrame(data, columns=headers)
+        df = df[df["timestamp"].astype(str).str.strip() != ""]
+        return df
 
 # ------------------------------------------------------------------
 # Datos de ejemplo (cuando no hay Google Sheets configurado)
