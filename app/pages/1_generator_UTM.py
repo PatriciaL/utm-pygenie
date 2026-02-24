@@ -8,7 +8,7 @@ from io import BytesIO
 from urllib.parse import urlencode
 import pandas as pd
 
-st.set_page_config(page_title="UTM Genie — Generador", page_icon="🧙", layout="centered")
+st.set_page_config(page_title="UTM Genie — Generador", page_icon="🧙", layout="centered", initial_sidebar_state="expanded")
 apply_style()
 
 st.markdown("""
@@ -30,8 +30,6 @@ st.markdown("""
 modo = st.radio("", ["Individual", "Masivo"], horizontal=True, label_visibility="collapsed")
 st.markdown("---")
 
-# ── Helpers ───────────────────────────────────────────────────────────
-
 def is_valid_utm(v):
     return bool(re.match(r"^[a-zA-Z0-9_\-]+$", v))
 
@@ -40,20 +38,14 @@ def parse_values(raw):
     return [v.strip() for v in raw.split(",") if v.strip()]
 
 def get_naming_values(sec_key):
-    """Lee bloques y valores del Naming Convention desde session_state."""
-    blocks   = st.session_state.get(sec_key, [])
-    vals     = st.session_state.get(f"vals_{sec_key}", {})
+    blocks = st.session_state.get(sec_key, [])
+    vals   = st.session_state.get(f"vals_{sec_key}", {})
     all_vals = []
     for blk in blocks:
         all_vals.extend(vals.get(blk, []))
     return ", ".join(list(dict.fromkeys(all_vals)))
 
 def sync_naming_to_inputs():
-    """
-    Copia los valores del Naming Convention a las keys de los inputs del modo masivo.
-    Se llama una sola vez cuando hay datos del naming convention disponibles.
-    Esto es necesario porque st.text_input ignora 'value' si el widget ya existe.
-    """
     mapping = {
         "bulk_source":   get_naming_values("source"),
         "bulk_medium":   get_naming_values("medium"),
@@ -64,7 +56,6 @@ def sync_naming_to_inputs():
     for k, v in mapping.items():
         if v and k not in st.session_state:
             st.session_state[k] = v
-
 
 # ═══════════════════════════════════════════════════════════════════
 # MODO INDIVIDUAL
@@ -90,11 +81,11 @@ if modo == "Individual":
         }
 
     base_url     = st.text_input("URL base", "https://tusitio.com")
-    utm_source   = field("utm_source",   "utm_source",   required=True,  hint="Fuente del tráfico",        example=examples["utm_source"])
-    utm_medium   = field("utm_medium",   "utm_medium",   required=True,  hint="Canal o medio",             example=examples["utm_medium"])
-    utm_campaign = field("utm_campaign", "utm_campaign", required=True,  hint="Nombre de la campaña",      example=examples["utm_campaign"])
-    utm_term     = field("utm_term",     "utm_term",     required=False, hint="Palabra clave (opcional)",  example=examples["utm_term"])
-    utm_content  = field("utm_content",  "utm_content",  required=False, hint="Variante del anuncio",      example=examples["utm_content"])
+    utm_source   = field("utm_source",   "utm_source",   required=True,  hint="Fuente del tráfico",       example=examples["utm_source"])
+    utm_medium   = field("utm_medium",   "utm_medium",   required=True,  hint="Canal o medio",            example=examples["utm_medium"])
+    utm_campaign = field("utm_campaign", "utm_campaign", required=True,  hint="Nombre de la campaña",     example=examples["utm_campaign"])
+    utm_term     = field("utm_term",     "utm_term",     required=False, hint="Palabra clave (opcional)", example=examples["utm_term"])
+    utm_content  = field("utm_content",  "utm_content",  required=False, hint="Variante del anuncio",     example=examples["utm_content"])
 
     params = {k: v for k, v in {
         "utm_source": utm_source, "utm_medium": utm_medium, "utm_campaign": utm_campaign,
@@ -122,12 +113,10 @@ if modo == "Individual":
         with c2:
             st.download_button("Descargar CSV", data=f"url\n{url}", file_name="utm_url.csv", mime="text/csv")
 
-
 # ═══════════════════════════════════════════════════════════════════
 # MODO MASIVO
 # ═══════════════════════════════════════════════════════════════════
 else:
-    # Sincronizar valores del naming convention a los inputs (solo la primera vez)
     sync_naming_to_inputs()
 
     has_naming = any([
