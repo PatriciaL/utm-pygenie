@@ -9,8 +9,22 @@ from urllib.parse import urlparse, parse_qs
 st.set_page_config(page_title="UTM Genie — Validador", page_icon="🧙", layout="centered")
 apply_style()
 
-st.markdown("# Validador de URLs")
-st.markdown('<p style="color:#71717A;font-size:0.8rem;margin-top:-8px">Verifica que tus URLs tienen los parámetros UTM correctos</p>', unsafe_allow_html=True)
+st.markdown("""
+<div style="margin-bottom:28px;padding-bottom:20px;border-bottom:1.5px solid #E4E4E7">
+  <div style="font-family:'Sora',sans-serif;font-size:0.6rem;font-weight:500;
+              letter-spacing:0.2em;text-transform:uppercase;color:#71717A;margin-bottom:8px">
+    UTM Genie
+  </div>
+  <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:600;
+              letter-spacing:-0.04em;color:#1A1A1A;line-height:1.1;margin-bottom:10px">
+    Validador de URLs
+  </div>
+  <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#71717A;letter-spacing:0.01em">
+    Verifica que tus URLs tienen los parámetros UTM correctos
+  </div>
+</div>
+
+""", unsafe_allow_html=True)
 
 def validate_url(url: str) -> list:
     errors = []
