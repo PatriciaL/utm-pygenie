@@ -11,7 +11,6 @@ import pandas as pd
 st.set_page_config(page_title="UTM Genie — Generador", page_icon="🧙", layout="centered")
 apply_style()
 
-# ── Cabecera ──────────────────────────────────────────────────────────
 st.markdown("""
 <div style="margin-bottom:28px;padding-bottom:20px;border-bottom:1.5px solid #E4E4E7">
   <div style="font-family:'Sora',sans-serif;font-size:0.6rem;font-weight:500;
@@ -28,11 +27,11 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Toggle modo ───────────────────────────────────────────────────────
 modo = st.radio("", ["Individual", "Masivo"], horizontal=True, label_visibility="collapsed")
 st.markdown("---")
 
 # ── Helpers ───────────────────────────────────────────────────────────
+
 def is_valid_utm(v):
     return bool(re.match(r"^[a-zA-Z0-9_\-]+$", v))
 
@@ -41,13 +40,31 @@ def parse_values(raw):
     return [v.strip() for v in raw.split(",") if v.strip()]
 
 def get_naming_values(sec_key):
-    # El constructor guarda bloques en session_state[sec_key] y valores en vals_{sec_key}
+    """Lee bloques y valores del Naming Convention desde session_state."""
     blocks   = st.session_state.get(sec_key, [])
     vals     = st.session_state.get(f"vals_{sec_key}", {})
     all_vals = []
     for blk in blocks:
         all_vals.extend(vals.get(blk, []))
     return ", ".join(list(dict.fromkeys(all_vals)))
+
+def sync_naming_to_inputs():
+    """
+    Copia los valores del Naming Convention a las keys de los inputs del modo masivo.
+    Se llama una sola vez cuando hay datos del naming convention disponibles.
+    Esto es necesario porque st.text_input ignora 'value' si el widget ya existe.
+    """
+    mapping = {
+        "bulk_source":   get_naming_values("source"),
+        "bulk_medium":   get_naming_values("medium"),
+        "bulk_campaign": get_naming_values("campaign"),
+        "bulk_content":  get_naming_values("content"),
+        "bulk_term":     get_naming_values("term"),
+    }
+    for k, v in mapping.items():
+        if v and k not in st.session_state:
+            st.session_state[k] = v
+
 
 # ═══════════════════════════════════════════════════════════════════
 # MODO INDIVIDUAL
@@ -65,19 +82,19 @@ if modo == "Individual":
 
     with st.expander("Personalizar ejemplos"):
         examples = {
-            "utm_source":   st.text_input("utm_source",   "newsletter, facebook",  key="ex_source"),
-            "utm_medium":   st.text_input("utm_medium",   "email, cpc",            key="ex_medium"),
-            "utm_campaign": st.text_input("utm_campaign", "lanzamiento2025",        key="ex_campaign"),
-            "utm_term":     st.text_input("utm_term",     "zapatos+rojos",          key="ex_term"),
-            "utm_content":  st.text_input("utm_content",  "banner_azul",            key="ex_content"),
+            "utm_source":   st.text_input("utm_source",   "newsletter, facebook", key="ex_source"),
+            "utm_medium":   st.text_input("utm_medium",   "email, cpc",           key="ex_medium"),
+            "utm_campaign": st.text_input("utm_campaign", "lanzamiento2025",       key="ex_campaign"),
+            "utm_term":     st.text_input("utm_term",     "zapatos+rojos",         key="ex_term"),
+            "utm_content":  st.text_input("utm_content",  "banner_azul",           key="ex_content"),
         }
 
     base_url     = st.text_input("URL base", "https://tusitio.com")
-    utm_source   = field("utm_source",   "utm_source",   required=True,  hint="Fuente del tráfico",         example=examples["utm_source"])
-    utm_medium   = field("utm_medium",   "utm_medium",   required=True,  hint="Canal o medio",              example=examples["utm_medium"])
-    utm_campaign = field("utm_campaign", "utm_campaign", required=True,  hint="Nombre de la campaña",       example=examples["utm_campaign"])
-    utm_term     = field("utm_term",     "utm_term",     required=False, hint="Palabra clave (opcional)",   example=examples["utm_term"])
-    utm_content  = field("utm_content",  "utm_content",  required=False, hint="Variante del anuncio (opc)", example=examples["utm_content"])
+    utm_source   = field("utm_source",   "utm_source",   required=True,  hint="Fuente del tráfico",        example=examples["utm_source"])
+    utm_medium   = field("utm_medium",   "utm_medium",   required=True,  hint="Canal o medio",             example=examples["utm_medium"])
+    utm_campaign = field("utm_campaign", "utm_campaign", required=True,  hint="Nombre de la campaña",      example=examples["utm_campaign"])
+    utm_term     = field("utm_term",     "utm_term",     required=False, hint="Palabra clave (opcional)",  example=examples["utm_term"])
+    utm_content  = field("utm_content",  "utm_content",  required=False, hint="Variante del anuncio",      example=examples["utm_content"])
 
     params = {k: v for k, v in {
         "utm_source": utm_source, "utm_medium": utm_medium, "utm_campaign": utm_campaign,
@@ -110,12 +127,14 @@ if modo == "Individual":
 # MODO MASIVO
 # ═══════════════════════════════════════════════════════════════════
 else:
-    nc_source   = get_naming_values("source")
-    nc_medium   = get_naming_values("medium")
-    nc_campaign = get_naming_values("campaign")
-    nc_content  = get_naming_values("content")
-    nc_term     = get_naming_values("term")
-    has_naming  = any([nc_source, nc_medium, nc_campaign])
+    # Sincronizar valores del naming convention a los inputs (solo la primera vez)
+    sync_naming_to_inputs()
+
+    has_naming = any([
+        get_naming_values("source"),
+        get_naming_values("medium"),
+        get_naming_values("campaign"),
+    ])
 
     if has_naming:
         st.info("Valores cargados desde tu Naming Convention. Puedes editarlos antes de generar.")
@@ -123,24 +142,21 @@ else:
         st.markdown('<p style="color:#71717A;font-size:0.85rem">Separa los valores con comas — se generarán todas las combinaciones posibles.</p>', unsafe_allow_html=True)
         st.page_link("pages/3_final_naming_convention_constructor.py", label="Configura tu Naming Convention primero")
 
-    base_url = st.text_input("URL base", "https://tusitio.com")
+    base_url = st.text_input("URL base", "https://tusitio.com", key="bulk_base_url")
 
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("## Obligatorios")
-        sources_raw   = st.text_input("utm_source *",   value=nc_source,   placeholder="google, facebook, instagram")
-        mediums_raw   = st.text_input("utm_medium *",   value=nc_medium,   placeholder="cpc, email, social")
+        sources_raw   = st.text_input("utm_source *",   key="bulk_source",   placeholder="google, facebook, instagram")
+        mediums_raw   = st.text_input("utm_medium *",   key="bulk_medium",   placeholder="cpc, email, social")
         campaign_mode = st.radio("utm_campaign *", ["Valor fijo", "Bloques del Naming Convention"], horizontal=True)
         if campaign_mode == "Valor fijo":
-            campaigns_raw = st.text_input("Valores de utm_campaign", placeholder="lanzamiento2025, black_friday")
+            campaigns_raw = st.text_input("Valores de utm_campaign", key="bulk_campaign", placeholder="lanzamiento2025, black_friday")
         else:
-            if f"blocks_campaign" in st.session_state or "campaign" in st.session_state:
-                blocks = st.session_state.get("blocks_campaign", st.session_state.get("campaign", []))
-                block_values = {
-                    blk: st.session_state.get("vals_campaign", {}).get(blk, [blk])
-                    for blk in blocks
-                }
-                combos = ["_".join(c) for c in itertools.product(*[v if v else [b] for b, v in block_values.items()])]
+            if "campaign" in st.session_state and st.session_state["campaign"]:
+                blocks       = st.session_state["campaign"]
+                block_values = {blk: st.session_state.get("vals_campaign", {}).get(blk, [blk]) for blk in blocks}
+                combos       = ["_".join(c) for c in itertools.product(*[v if v else [b] for b, v in block_values.items()])]
                 campaigns_raw = ", ".join(combos)
                 st.caption(f"Combinaciones: {campaigns_raw}")
             else:
@@ -148,8 +164,8 @@ else:
                 st.warning("Aún no has configurado bloques en el Naming Convention.")
     with col2:
         st.markdown("## Opcionales")
-        contents_raw = st.text_input("utm_content", value=nc_content, placeholder="banner_azul, banner_rojo")
-        terms_raw    = st.text_input("utm_term",    value=nc_term,    placeholder="zapatos, zapatos+rojos")
+        contents_raw = st.text_input("utm_content", key="bulk_content", placeholder="banner_azul, banner_rojo")
+        terms_raw    = st.text_input("utm_term",    key="bulk_term",    placeholder="zapatos, zapatos+rojos")
 
     sources   = parse_values(sources_raw)
     mediums   = parse_values(mediums_raw)
@@ -208,7 +224,6 @@ else:
             with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
                 filtered_df.to_excel(w, index=False, sheet_name="URLs_UTM")
             buf.seek(0)
-            st.download_button("Descargar Excel", data=buf,
-                               file_name="utm_urls_masivas.xlsx",
+            st.download_button("Descargar Excel", data=buf, file_name="utm_urls_masivas.xlsx",
                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                use_container_width=True)
