@@ -35,12 +35,12 @@ def parse_values(raw):
     return [v.strip() for v in raw.split(",") if v.strip()]
 
 def get_naming_values(sec_key):
-    blocks_key = f"blocks_{sec_key}" if f"blocks_{sec_key}" in st.session_state else sec_key
-    vals_key   = f"vals_{sec_key}"
-    blocks     = st.session_state.get(blocks_key, [])
-    all_vals   = []
+    # El constructor guarda bloques en session_state[sec_key] y valores en vals_{sec_key}
+    blocks   = st.session_state.get(sec_key, [])
+    vals     = st.session_state.get(f"vals_{sec_key}", {})
+    all_vals = []
     for blk in blocks:
-        all_vals.extend(st.session_state.get(vals_key, {}).get(blk, []))
+        all_vals.extend(vals.get(blk, []))
     return ", ".join(list(dict.fromkeys(all_vals)))
 
 # ═══════════════════════════════════════════════════════════════════
