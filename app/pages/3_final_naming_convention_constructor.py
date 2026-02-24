@@ -24,13 +24,13 @@ st.markdown("""
     Define la estructura y valores de cada parámetro UTM
   </div>
 </div>
-
 """, unsafe_allow_html=True)
 
-st.markdown("""
-Arrastra los bloques para reordenar, añade valores y exporta la configuración.  
-Cuando termines, ve al Generador — los valores se cargarán automáticamente.
-""")
+st.markdown("Arrastra los bloques para reordenar, añade valores y exporta la configuración. Cuando termines, ve al Generador — los valores se cargarán automáticamente.")
+
+# ------------------------------------------------------------------
+# Estado inicial
+# ------------------------------------------------------------------
 
 SECTIONS = {
     "campaign": ["producto", "pais", "fecha", "audiencia", "region"],
@@ -48,11 +48,19 @@ for key, defaults in SECTIONS.items():
     if f"reset_count_{key}" not in st.session_state:
         st.session_state[f"reset_count_{key}"] = 0
 
+# ------------------------------------------------------------------
+# Callbacks — toda la mutación de estado aquí, nunca en el render
+# ------------------------------------------------------------------
+
 def reset_sec(key):
     defaults = SECTIONS[key]
     st.session_state[key] = defaults.copy()
     st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
     st.session_state[f"reset_count_{key}"] += 1
+    # Limpiar también los inputs del generador para forzar resync
+    for k in ["bulk_source","bulk_medium","bulk_campaign","bulk_content","bulk_term"]:
+        if k in st.session_state:
+            del st.session_state[k]
 
 def add_block_cb(key):
     name = st.session_state[f"newblk_input_{key}"].strip()
@@ -62,7 +70,7 @@ def add_block_cb(key):
         st.session_state[f"reset_count_{key}"] += 1
     st.session_state[f"newblk_input_{key}"] = ""
 
-def delete_block(key, blk):
+def delete_block_cb(key, blk):
     if blk in st.session_state[key]:
         st.session_state[key].remove(blk)
     st.session_state[f"vals_{key}"].pop(blk, None)
@@ -72,85 +80,105 @@ def add_values_cb(key):
     blk = st.session_state[f"sel_input_{key}"]
     txt = st.session_state[f"txt_input_{key}"].strip()
     if txt:
-        vals = [v.strip() for v in txt.split(",") if v.strip()]
+        new_vals = [v.strip() for v in txt.split(",") if v.strip()]
         existing = st.session_state[f"vals_{key}"].get(blk, [])
-        for v in vals:
+        for v in new_vals:
             if v not in existing:
                 existing.append(v)
         st.session_state[f"vals_{key}"][blk] = existing
+        # Invalidar cache del generador para forzar resync
+        for k in ["bulk_source","bulk_medium","bulk_campaign","bulk_content","bulk_term"]:
+            if k in st.session_state:
+                del st.session_state[k]
     st.session_state[f"txt_input_{key}"] = ""
 
-def delete_val(key, blk, val):
-    st.session_state[f"vals_{key}"][blk].remove(val)
+def delete_val_cb(key, blk, val):
+    if val in st.session_state[f"vals_{key}"].get(blk, []):
+        st.session_state[f"vals_{key}"][blk].remove(val)
+    for k in ["bulk_source","bulk_medium","bulk_campaign","bulk_content","bulk_term"]:
+        if k in st.session_state:
+            del st.session_state[k]
 
 def get_all_values(key):
     all_vals = []
-    for blk in st.session_state[key]:
-        all_vals.extend(st.session_state[f"vals_{key}"].get(blk, []))
+    for blk in st.session_state.get(key, []):
+        all_vals.extend(st.session_state.get(f"vals_{key}", {}).get(blk, []))
     return list(dict.fromkeys(all_vals))
+
+# ------------------------------------------------------------------
+# Render de sección
+# ------------------------------------------------------------------
 
 def section(title: str, key: str):
     st.markdown(f"## {title}")
 
-    rc = st.session_state[f"reset_count_{key}"]
+    # FIX: sort_items puede devolver None si no hay interacción — proteger siempre
+    rc     = st.session_state[f"reset_count_{key}"]
     result = sort_items(st.session_state[key], direction="horizontal", key=f"sort_{key}_{rc}")
-    if result:
+    if result and len(result) == len(st.session_state[key]):
         st.session_state[key] = result
 
     st.caption("Arrastra los bloques para cambiar el orden")
-    st.write("Orden actual:", st.session_state[key])
 
-    # Bloques con valores y borrado
-    for blk in st.session_state[key]:
+    # Bloques con sus valores como pastillas y botón de borrado
+    for blk in list(st.session_state[key]):  # list() para evitar mutation durante iteración
         vals = st.session_state[f"vals_{key}"].get(blk, [])
-        c1, c2 = st.columns([8, 1])
+        c1, c2 = st.columns([9, 1])
         with c1:
             pastillas = " ".join([
                 f'<span style="background:#EEF2F7;color:#3D5A80;padding:2px 10px;'
                 f'border-radius:20px;font-size:11px;border:1.5px solid #C5D3E8;'
-                f'font-family:\'Sora\',sans-serif;letter-spacing:0.03em">{v}</span>'
+                f'font-family:\'Sora\',sans-serif;letter-spacing:0.03em;margin:2px;display:inline-block">{v}</span>'
                 for v in vals
             ])
             sin_vals = '<em style="color:#A1A1AA;font-size:11px">sin valores</em>' if not vals else ""
             st.markdown(
-                f'<div style="margin:6px 0;font-size:0.8rem"><strong style="font-family:\'Sora\',sans-serif">{blk}</strong>'
+                f'<div style="margin:6px 0;font-size:0.82rem;line-height:2">'
+                f'<strong style="font-family:\'Sora\',sans-serif">{blk}</strong>'
                 f'&nbsp;&nbsp;{pastillas}{sin_vals}</div>',
                 unsafe_allow_html=True
             )
         with c2:
-            if st.button("—", key=f"del_blk_{key}_{blk}", help=f"Eliminar bloque '{blk}'"):
-                delete_block(key, blk)
-                st.rerun()
+            # FIX: usar on_click para que el callback se ejecute antes del re-render
+            st.button("—", key=f"del_blk_{key}_{blk}",
+                      help=f"Eliminar bloque '{blk}'",
+                      on_click=delete_block_cb,
+                      kwargs={"key": key, "blk": blk})
 
+        # FIX: mostrar TODOS los valores, no solo los primeros 6
         if vals:
-            val_cols = st.columns(min(len(vals), 6))
-            for i, val in enumerate(vals[:6]):
-                with val_cols[i]:
-                    if st.button(f"x {val}", key=f"del_val_{key}_{blk}_{val}"):
-                        delete_val(key, blk, val)
-                        st.rerun()
+            for i in range(0, len(vals), 4):
+                chunk = vals[i:i+4]
+                val_cols = st.columns(len(chunk))
+                for j, val in enumerate(chunk):
+                    with val_cols[j]:
+                        st.button(f"x {val}", key=f"del_val_{key}_{blk}_{val}",
+                                  on_click=delete_val_cb,
+                                  kwargs={"key": key, "blk": blk, "val": val})
 
     st.markdown("")
 
-    if st.button("Resetear sección", key=f"reset_btn_{key}"):
-        reset_sec(key)
-        st.rerun()
-
+    # Añadir nuevo bloque
     st.markdown("### Nuevo bloque")
-    c1, c2 = st.columns([4, 1])
-    with c1:
+    nc1, nc2 = st.columns([4, 1])
+    with nc1:
         st.text_input("", key=f"newblk_input_{key}", placeholder="ej. promocion", label_visibility="collapsed")
-    with c2:
+    with nc2:
         st.button("Agregar", key=f"btn_addblk_{key}", on_click=add_block_cb, kwargs={"key": key})
 
+    # Reset
+    st.button("Resetear sección", key=f"reset_btn_{key}", on_click=reset_sec, kwargs={"key": key})
+
+    # Añadir valores
     st.markdown("### Añadir valores")
     if st.session_state[key]:
-        st.selectbox("Bloque destino", st.session_state[key], key=f"sel_input_{key}", label_visibility="collapsed")
-        st.text_input("Valores separados por coma", key=f"txt_input_{key}", placeholder="valor1, valor2, valor3", label_visibility="collapsed")
+        st.selectbox("", st.session_state[key], key=f"sel_input_{key}", label_visibility="collapsed")
+        st.text_input("", key=f"txt_input_{key}", placeholder="valor1, valor2, valor3", label_visibility="collapsed")
         st.button("Agregar valores", key=f"btn_addvals_{key}", on_click=add_values_cb, kwargs={"key": key})
     else:
         st.caption("Añade al menos un bloque primero.")
 
+    # Debug / preview
     with st.expander("Ver valores guardados"):
         st.json(st.session_state[f"vals_{key}"])
 
@@ -160,11 +188,19 @@ def section(title: str, key: str):
 
     st.markdown("---")
 
+# ------------------------------------------------------------------
+# Secciones
+# ------------------------------------------------------------------
+
 section("utm_campaign", "campaign")
 section("utm_source",   "source")
 section("utm_medium",   "medium")
 section("utm_content",  "content")
 section("utm_term",     "term")
+
+# ------------------------------------------------------------------
+# Exportar a Excel
+# ------------------------------------------------------------------
 
 st.markdown("## Exportar a Excel")
 
