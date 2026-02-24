@@ -53,7 +53,7 @@ def get_or_create_sheet(client, sheet_name="UTM Genie NPS"):
     except Exception:
         # Crear sheet nuevo
         sh = client.create(sheet_name)
-        sh.share(None, perm_type="anyone", role="writer")  # opcional: compartir
+        # Sheet privado — acceso solo via Service Account
     ws = sh.sheet1
     # Añadir cabeceras si está vacío
     if ws.row_count == 0 or not ws.get_all_values():
@@ -335,15 +335,7 @@ with tab_dash:
             </div>
             """, unsafe_allow_html=True)
 
-        # ── Descargar datos ───────────────────────────────
-        st.markdown("---")
-        st.download_button(
-            "Descargar todas las respuestas CSV",
-            data=df.to_csv(index=False).encode(),
-            file_name=f"nps_responses_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
+
 
 # ══════════════════════════════════════════════════════════
 # TAB 3 — Configuración Google Sheets
