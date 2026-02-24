@@ -29,36 +29,32 @@ st.markdown("""
 # Instrucciones + sticky CTA
 st.markdown("""
 <style>
-.sticky-cta {
-    position: fixed;
-    bottom: 32px;
-    right: 36px;
-    z-index: 99999;
-}
-.sticky-cta a {
-    font-family: 'Sora', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: #3D5A80;
+/* Forzar el botón sticky de Streamlit a posición fija */
+div[data-testid="stButton"].sticky-btn > button {
+    position: fixed !important;
+    bottom: 32px !important;
+    right: 36px !important;
+    z-index: 99999 !important;
+    font-family: 'Sora', sans-serif !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    background: #3D5A80 !important;
     color: #FFFFFF !important;
-    text-decoration: none !important;
-    border-radius: 8px;
-    padding: 14px 26px;
-    display: inline-block;
-    box-shadow: 0 4px 20px rgba(61,90,128,0.45), 0 1px 4px rgba(0,0,0,0.15);
-    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 14px 26px !important;
+    box-shadow: 0 4px 20px rgba(61,90,128,0.45), 0 1px 4px rgba(0,0,0,0.15) !important;
+    cursor: pointer !important;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s !important;
 }
-.sticky-cta a:hover {
-    background: #2e4460;
-    box-shadow: 0 8px 28px rgba(61,90,128,0.55);
-    transform: translateY(-1px);
+div[data-testid="stButton"].sticky-btn > button:hover {
+    background: #2e4460 !important;
+    box-shadow: 0 8px 28px rgba(61,90,128,0.55) !important;
+    transform: translateY(-1px) !important;
 }
 </style>
-<div class="sticky-cta">
-  <a href="/1_generator_UTM" target="_self">Ir al Generador &rarr;</a>
-</div>
 <div style="background:#EEF2F7;border:1.5px solid #C5D3E8;border-radius:6px;padding:18px 22px;margin-bottom:4px">
   <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3D5A80;margin-bottom:10px">Cómo funciona</div>
   <div style="font-family:'Sora',sans-serif;font-size:0.83rem;color:#1A1A1A;line-height:1.75;margin-bottom:14px">
@@ -75,6 +71,12 @@ st.markdown("""
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+# Botón sticky — usa st.switch_page para navegar sin perder session_state
+st.markdown('<div class="sticky-btn">', unsafe_allow_html=True)
+if st.button("Ir al Generador →", key="sticky_go_generator"):
+    st.switch_page("pages/1_generator_UTM.py")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 # Estado inicial
