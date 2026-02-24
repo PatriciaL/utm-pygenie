@@ -115,15 +115,7 @@ if use_sheets:
     except Exception as e:
         use_sheets = False
 
-if not use_sheets:
-    st.markdown("""
-    <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:6px;
-                padding:12px 16px;margin-bottom:20px;font-family:'Sora',sans-serif;font-size:0.78rem;color:#92400E">
-      <strong>Modo demo</strong> — Google Sheets no configurado. El dashboard muestra datos de ejemplo.
-      Las respuestas se pueden descargar como CSV pero no se guardan automáticamente.
-      <a href="#configuracion" style="color:#3D5A80;text-decoration:none;margin-left:8px">Ver instrucciones de configuración →</a>
-    </div>
-    """, unsafe_allow_html=True)
+
 
 # ------------------------------------------------------------------
 # Tabs: Formulario / Dashboard / Configuración
