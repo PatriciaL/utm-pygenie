@@ -27,8 +27,46 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Instrucciones ─────────────────────────────────────────────────
+st.markdown("""
+<div style="background:#EEF2F7;border:1.5px solid #C5D3E8;border-radius:6px;padding:18px 22px;margin-bottom:24px">
+  <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;
+              text-transform:uppercase;color:#3D5A80;margin-bottom:12px">Cómo funciona</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.78rem;font-weight:600;color:#1A1A1A;margin-bottom:6px">
+        Individual
+      </div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.76rem;color:#52525B;line-height:1.65">
+        Genera una URL única rellenando los campos uno a uno.
+        Ideal para campañas puntuales o para probar una combinación concreta.
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.78rem;font-weight:600;color:#1A1A1A;margin-bottom:6px">
+        Masivo
+      </div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.76rem;color:#52525B;line-height:1.65">
+        Introduce varios valores por campo separados por comas.
+        Se generan automáticamente todas las combinaciones posibles
+        y puedes descargarlas en CSV o Excel.
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid #C5D3E8">
+    <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#3D5A80;line-height:1.7">
+      <strong>Parámetros obligatorios:</strong> utm_source · utm_medium · utm_campaign
+      &nbsp;&nbsp;·&nbsp;&nbsp;
+      <strong>Opcionales:</strong> utm_content · utm_term
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
 modo = st.radio("", ["Individual", "Masivo"], horizontal=True, label_visibility="collapsed")
 st.markdown("---")
+
+# ── Helpers ───────────────────────────────────────────────────────────
 
 def is_valid_utm(v):
     return bool(re.match(r"^[a-zA-Z0-9_\-]+$", v))
@@ -128,8 +166,14 @@ else:
     if has_naming:
         st.info("Valores cargados desde tu Naming Convention. Puedes editarlos antes de generar.")
     else:
-        st.markdown('<p style="color:#71717A;font-size:0.85rem">Separa los valores con comas — se generarán todas las combinaciones posibles.</p>', unsafe_allow_html=True)
-        st.page_link("pages/3_final_naming_convention_constructor.py", label="Configura tu Naming Convention primero")
+        st.markdown("""
+        <div style="background:#F8FAFC;border:1.5px solid #E4E4E7;border-radius:6px;
+                    padding:12px 16px;margin-bottom:16px;font-family:'Sora',sans-serif;font-size:0.78rem;color:#52525B">
+          Separa los valores con <strong>comas</strong> — se generarán todas las combinaciones posibles.<br>
+          <span style="color:#3D5A80">Ej: utm_source = <code>google, facebook</code> · utm_medium = <code>cpc, email</code> → 4 URLs</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.page_link("pages/3_final_naming_convention_constructor.py", label="→ Configura tu Naming Convention para cargar valores automáticamente")
 
     base_url = st.text_input("URL base", "https://tusitio.com", key="bulk_base_url")
 
