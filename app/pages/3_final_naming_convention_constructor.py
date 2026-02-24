@@ -26,7 +26,55 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("Arrastra los bloques para reordenar, añade valores y exporta la configuración. Cuando termines, ve al Generador — los valores se cargarán automáticamente.")
+# Instrucciones + sticky CTA
+st.markdown("""
+<style>
+.sticky-cta {
+    position: fixed;
+    bottom: 32px;
+    right: 36px;
+    z-index: 99999;
+}
+.sticky-cta a {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: #3D5A80;
+    color: #FFFFFF !important;
+    text-decoration: none !important;
+    border-radius: 8px;
+    padding: 14px 26px;
+    display: inline-block;
+    box-shadow: 0 4px 20px rgba(61,90,128,0.45), 0 1px 4px rgba(0,0,0,0.15);
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+.sticky-cta a:hover {
+    background: #2e4460;
+    box-shadow: 0 8px 28px rgba(61,90,128,0.55);
+    transform: translateY(-1px);
+}
+</style>
+<div class="sticky-cta">
+  <a href="/1_generator_UTM" target="_self">Ir al Generador &rarr;</a>
+</div>
+<div style="background:#EEF2F7;border:1.5px solid #C5D3E8;border-radius:6px;padding:18px 22px;margin-bottom:4px">
+  <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3D5A80;margin-bottom:10px">Cómo funciona</div>
+  <div style="font-family:'Sora',sans-serif;font-size:0.83rem;color:#1A1A1A;line-height:1.75;margin-bottom:14px">
+    Define los <strong>bloques</strong> de cada parámetro UTM y añade <strong>valores</strong> a cada uno.
+    Todo lo que configures aquí se cargará automáticamente en el <strong>Generador Masivo</strong>
+    para que puedas generar todas las combinaciones sin escribir nada manualmente.
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px">
+    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_campaign</strong> &rarr; combinaciones de bloques</div>
+    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_source</strong> &rarr; fuentes de tráfico</div>
+    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_medium</strong> &rarr; canales o medios</div>
+    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_content</strong> &rarr; variantes del anuncio</div>
+    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_term</strong> &rarr; palabras clave</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 # Estado inicial
@@ -228,5 +276,4 @@ if st.button("Descargar Excel"):
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 st.markdown("---")
-st.success("Cuando hayas configurado tus valores, ve al Generador y se cargarán automáticamente.")
-st.page_link("pages/1_generator_UTM.py", label="Ir al Generador")
+st.caption("Los valores configurados se cargarán automáticamente en el Generador Masivo.")
