@@ -182,19 +182,19 @@ else:
         st.markdown("## Obligatorios")
         sources_raw   = st.text_input("utm_source *",   key="bulk_source",   placeholder="google, facebook, instagram")
         mediums_raw   = st.text_input("utm_medium *",   key="bulk_medium",   placeholder="cpc, email, social")
-        campaign_mode = st.radio("utm_campaign *", ["Valor fijo", "Bloques del Naming Convention"], horizontal=True)
+        if has_naming and st.session_state.get("campaign"):
+            campaign_mode = st.radio("utm_campaign *", ["Valor fijo", "Bloques del Naming Convention"], horizontal=True)
+        else:
+            campaign_mode = "Valor fijo"
+
         if campaign_mode == "Valor fijo":
             campaigns_raw = st.text_input("Valores de utm_campaign", key="bulk_campaign", placeholder="lanzamiento2025, black_friday")
         else:
-            if "campaign" in st.session_state and st.session_state["campaign"]:
-                blocks       = st.session_state["campaign"]
-                block_values = {blk: st.session_state.get("vals_campaign", {}).get(blk, [blk]) for blk in blocks}
-                combos       = ["_".join(c) for c in itertools.product(*[v if v else [b] for b, v in block_values.items()])]
-                campaigns_raw = ", ".join(combos)
-                st.caption(f"Combinaciones: {campaigns_raw}")
-            else:
-                campaigns_raw = ""
-                st.warning("Aún no has configurado bloques en el Naming Convention.")
+            blocks       = st.session_state["campaign"]
+            block_values = {blk: st.session_state.get("vals_campaign", {}).get(blk, [blk]) for blk in blocks}
+            combos       = ["_".join(c) for c in itertools.product(*[v if v else [b] for b, v in block_values.items()])]
+            campaigns_raw = ", ".join(combos)
+            st.caption(f"Combinaciones: {campaigns_raw}")
     with col2:
         st.markdown("## Opcionales")
         contents_raw = st.text_input("utm_content", key="bulk_content", placeholder="banner_azul, banner_rojo")
