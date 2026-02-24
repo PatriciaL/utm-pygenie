@@ -22,116 +22,150 @@ Cuando termines, ve al **Generador** — los valores se cargarán automáticamen
 """)
 
 # ------------------------------------------------------------------
-# Funciones utilitarias
+# Inicialización de estado global
 # ------------------------------------------------------------------
 
-def init_sec(key: str, defaults: list):
+SECTIONS = {
+    "campaign": ["producto", "pais", "fecha", "audiencia", "region"],
+    "source":   ["google", "facebook", "instagram", "newsletter", "linkedin"],
+    "medium":   ["cpc", "organic", "email", "referral", "social"],
+    "content":  ["color", "version", "posicion"],
+    "term":     ["keyword", "matchtype"],
+}
+
+for key, defaults in SECTIONS.items():
     if key not in st.session_state:
         st.session_state[key] = defaults.copy()
     if f"vals_{key}" not in st.session_state:
         st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
-    if f"sel_{key}" not in st.session_state:
-        st.session_state[f"sel_{key}"] = defaults[0]
-    if f"txt_{key}" not in st.session_state:
-        st.session_state[f"txt_{key}"] = ""
-    if f"newblk_{key}" not in st.session_state:
-        st.session_state[f"newblk_{key}"] = ""
+    if f"reset_count_{key}" not in st.session_state:
+        st.session_state[f"reset_count_{key}"] = 0
 
-def reset_sec(key: str, defaults: list):
+# ------------------------------------------------------------------
+# Funciones utilitarias
+# ------------------------------------------------------------------
+
+def reset_sec(key: str):
+    defaults = SECTIONS[key]
     st.session_state[key] = defaults.copy()
     st.session_state[f"vals_{key}"] = {b: [] for b in defaults}
-    st.session_state[f"sel_{key}"] = defaults[0]
-    st.session_state[f"txt_{key}"] = ""
-    st.session_state[f"newblk_{key}"] = ""
+    st.session_state[f"reset_count_{key}"] += 1
 
-def add_block(sec_key: str, block_name: str):
-    if block_name and block_name not in st.session_state[sec_key]:
-        st.session_state[sec_key].append(block_name)
-        st.session_state[f"vals_{sec_key}"][block_name] = []
-
-def add_block_callback(sec_key: str, input_key: str):
-    name = st.session_state[input_key].strip()
-    if name:
-        add_block(sec_key, name)
-    st.session_state[input_key] = ""
-    st.rerun()
+def add_block_callback(sec_key: str):
+    name = st.session_state[f"newblk_input_{sec_key}"].strip()
+    if name and name not in st.session_state[sec_key]:
+        st.session_state[sec_key].append(name)
+        st.session_state[f"vals_{sec_key}"][name] = []
+    st.session_state[f"newblk_input_{sec_key}"] = ""
 
 def add_values_callback(sec_key: str):
-    blk = st.session_state[f"sel_{sec_key}"]
-    txt = st.session_state[f"txt_{sec_key}"]
+    blk = st.session_state[f"sel_input_{sec_key}"]
+    txt = st.session_state[f"txt_input_{sec_key}"]
     if txt.strip():
         vals = [v.strip() for v in txt.split(",") if v.strip()]
         st.session_state[f"vals_{sec_key}"][blk].extend(vals)
-        st.session_state[f"vals_{sec_key}"][blk] = list(dict.fromkeys(st.session_state[f"vals_{sec_key}"][blk]))
-    st.session_state[f"txt_{sec_key}"] = ""
+        st.session_state[f"vals_{sec_key}"][blk] = list(dict.fromkeys(
+            st.session_state[f"vals_{sec_key}"][blk]
+        ))
+    st.session_state[f"txt_input_{sec_key}"] = ""
 
 def get_all_values(sec_key: str) -> list:
-    """Devuelve todos los valores únicos de todos los bloques de una sección."""
     all_vals = []
     for blk in st.session_state.get(sec_key, []):
         all_vals.extend(st.session_state.get(f"vals_{sec_key}", {}).get(blk, []))
-    return list(dict.fromkeys(all_vals))  # sin duplicados, preservando orden
+    return list(dict.fromkeys(all_vals))
 
-def section(title: str, sec_key: str, defaults: list):
-    init_sec(sec_key, defaults)
+# ------------------------------------------------------------------
+# Renderizado de sección
+# ------------------------------------------------------------------
 
+def section(title: str, sec_key: str):
     st.markdown(f"## {title}")
 
-    st.session_state[sec_key] = sort_items(
+    # Drag & drop con key dinámica para que el reset funcione
+    reset_count = st.session_state[f"reset_count_{sec_key}"]
+    result = sort_items(
         st.session_state[sec_key],
         direction="horizontal",
-        key=f"sort_{sec_key}"
-    ) or st.session_state[sec_key]
+        key=f"sort_{sec_key}_{reset_count}"
+    )
+    if result:
+        st.session_state[sec_key] = result
 
     st.caption("🔀 Arrastra los bloques para cambiar el orden")
     st.write("Orden actual:", st.session_state[sec_key])
 
-    if st.button("↩️ Reset sección", key=f"reset_{sec_key}"):
-        reset_sec(sec_key, defaults)
+    if st.button("↩️ Reset sección", key=f"reset_btn_{sec_key}"):
+        reset_sec(sec_key)
+        st.rerun()
 
+    # --- Añadir nuevo bloque ---
     st.markdown("### ➕ Añadir nuevo bloque")
-    newblk_key = f"newblk_{sec_key}"
-    st.text_input("Nombre del bloque", key=newblk_key, placeholder="ej.: promocion")
-    st.button("Agregar bloque",
-              key=f"btn_addblk_{sec_key}",
-              on_click=add_block_callback,
-              kwargs=dict(sec_key=sec_key, input_key=newblk_key))
+    st.text_input(
+        "Nombre del bloque",
+        key=f"newblk_input_{sec_key}",
+        placeholder="ej.: promocion"
+    )
+    st.button(
+        "Agregar bloque",
+        key=f"btn_addblk_{sec_key}",
+        on_click=add_block_callback,
+        kwargs={"sec_key": sec_key}
+    )
 
-    st.markdown("### ➕ Añadir valores al bloque")
-    st.selectbox("Bloque destino", st.session_state[sec_key], key=f"sel_{sec_key}")
-    st.text_input("Valores (coma separada)", key=f"txt_{sec_key}", placeholder="valor1, valor2, valor3")
-    st.button("Agregar valores",
-              key=f"btn_addvals_{sec_key}",
-              on_click=add_values_callback,
-              kwargs=dict(sec_key=sec_key))
+    # --- Añadir valores al bloque ---
+    st.markdown("### 📥 Añadir valores al bloque")
+    bloques_actuales = st.session_state[sec_key]
+    if bloques_actuales:
+        st.selectbox(
+            "Bloque destino",
+            bloques_actuales,
+            key=f"sel_input_{sec_key}"
+        )
+        st.text_input(
+            "Valores (separados por coma)",
+            key=f"txt_input_{sec_key}",
+            placeholder="valor1, valor2, valor3"
+        )
+        st.button(
+            "Agregar valores",
+            key=f"btn_addvals_{sec_key}",
+            on_click=add_values_callback,
+            kwargs={"sec_key": sec_key}
+        )
+    else:
+        st.info("Añade al menos un bloque antes de agregar valores.")
 
+    # --- Ver valores guardados ---
     with st.expander("🔍 Ver valores guardados"):
         st.json(st.session_state[f"vals_{sec_key}"])
 
-    # Preview de los valores que se enviarán al generador
+    # --- Preview para el generador ---
     preview_vals = get_all_values(sec_key)
     if preview_vals:
         st.caption(f"⚡ El generador masivo usará: `{', '.join(preview_vals)}`")
 
+    st.markdown("---")
+
 # ------------------------------------------------------------------
-# Renderizado de las 5 secciones UTM
+# Renderizado de las 5 secciones
 # ------------------------------------------------------------------
 
-section("utm_campaign", "campaign", ["producto", "pais", "fecha", "audiencia", "region"])
-section("utm_source",   "source",   ["google", "facebook", "instagram", "newsletter", "linkedin"])
-section("utm_medium",   "medium",   ["cpc", "organic", "email", "referral", "social"])
-section("utm_content",  "content",  ["color", "version", "posicion"])
-section("utm_term",     "term",     ["keyword", "matchtype"])
+section("utm_campaign", "campaign")
+section("utm_source",   "source")
+section("utm_medium",   "medium")
+section("utm_content",  "content")
+section("utm_term",     "term")
 
 # ------------------------------------------------------------------
 # Exportar configuración a Excel
 # ------------------------------------------------------------------
-st.markdown("---")
+
 st.header("📁 Exportar configuración a Excel")
 
 def build_val_sheet():
     cols = {}
-    for sec in ["campaign", "source", "medium", "content", "term"]:
+    for sec in SECTIONS:
         col = []
         for blk in st.session_state[sec]:
             col += [blk] + st.session_state[f"vals_{sec}"][blk] + [""]
@@ -143,11 +177,8 @@ def build_val_sheet():
 
 if st.button("📥 Descargar Excel"):
     df_struct = pd.DataFrame([{
-        "utm_campaign": "_".join(st.session_state["campaign"]),
-        "utm_source"  : "_".join(st.session_state["source"]),
-        "utm_medium"  : "_".join(st.session_state["medium"]),
-        "utm_content" : "_".join(st.session_state["content"]),
-        "utm_term"    : "_".join(st.session_state["term"]),
+        f"utm_{sec}": "_".join(st.session_state[sec])
+        for sec in SECTIONS
     }])
     df_vals = build_val_sheet()
 
