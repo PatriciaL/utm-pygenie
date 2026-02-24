@@ -196,14 +196,12 @@ else:
         df = st.session_state["bulk_urls"]
         st.markdown(f"### 📋 {len(df)} URLs generadas")
 
+        filtered_df = df.copy()
         with st.expander("🔍 Filtrar resultados"):
             f_source = st.multiselect("Filtrar por utm_source", options=df["utm_source"].unique())
             f_medium = st.multiselect("Filtrar por utm_medium", options=df["utm_medium"].unique())
-            filtered_df = df.copy()
             if f_source: filtered_df = filtered_df[filtered_df["utm_source"].isin(f_source)]
             if f_medium: filtered_df = filtered_df[filtered_df["utm_medium"].isin(f_medium)]
-        else:
-            filtered_df = df
 
         st.dataframe(
             filtered_df,
