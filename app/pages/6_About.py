@@ -30,7 +30,7 @@ st.markdown("""
               text-transform:uppercase;color:#92400E;margin-bottom:6px">Beta pública</div>
   <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#78350F;line-height:1.65">
     UTM Genie está en fase beta. Puede tener bugs y las funcionalidades están en evolución constante.
-    Si encuentras algo raro o tienes sugerencias, cuéntamelo por LinkedIn — cada opinión cuenta.
+    Si encuentras algo raro o tienes sugerencias, cuéntamelo por LinkedIn o en la sección de feedback que tendrás en el menú — cada opinión cuenta (y me gusta aplicar aprendizajes).
   </div>
 </div>
 """, unsafe_allow_html=True)
