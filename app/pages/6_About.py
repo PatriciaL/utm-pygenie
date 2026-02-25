@@ -18,7 +18,7 @@ st.markdown("""
     Acerca de
   </div>
   <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#71717A;letter-spacing:0.01em">
-    Herramienta para campañas de marketing digital · Beta pública
+    Herramienta para crear utm y definir naming convention para GA4 · Beta pública 
   </div>
 </div>
 """, unsafe_allow_html=True)
