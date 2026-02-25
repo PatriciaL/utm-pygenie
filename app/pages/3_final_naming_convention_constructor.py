@@ -7,7 +7,7 @@ from streamlit_sortables import sort_items
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="UTM Genie — Naming Convention", page_icon="🧙", layout="centered")
+st.set_page_config(page_title="UTM Genie — Naming Convention", page_icon="🧙", layout="centered", initial_sidebar_state="expanded")
 apply_style()
 
 st.markdown("""
@@ -267,12 +267,89 @@ def build_val_sheet():
     return pd.DataFrame(cols)
 
 if st.button("Descargar Excel"):
-    df_struct = pd.DataFrame([{f"utm_{sec}": "_".join(st.session_state[sec]) for sec in SECTIONS}])
-    df_vals   = build_val_sheet()
-    buffer    = BytesIO()
-    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-        df_struct.to_excel(writer, index=False, sheet_name="estructura")
-        df_vals.to_excel(writer,   index=False, sheet_name="valores")
+    import itertools as _it
+
+    # ── Hoja 1: valores por parámetro ─────────────────────────────
+    # utm_campaign → combinaciones de bloques (producto cartesiano)
+    # resto        → lista plana de valores de todos sus bloques
+    cols_export = {}
+
+    # utm_campaign: producto cartesiano de valores de cada bloque
+    cam_blocks = st.session_state.get("campaign", [])
+    cam_vals   = st.session_state.get("vals_campaign", {})
+    if cam_blocks:
+        block_lists = [cam_vals.get(b, [b]) or [b] for b in cam_blocks]
+        combos = ["_".join(c) for c in _it.product(*block_lists)]
+        cols_export["utm_campaign"] = combos
+    else:
+        cols_export["utm_campaign"] = []
+
+    # resto de parámetros: lista plana de valores (sin concatenar bloques)
+    for sec in ["source", "medium", "content", "term"]:
+        vals_flat = []
+        for blk in st.session_state.get(sec, []):
+            vals_flat.extend(st.session_state.get(f"vals_{sec}", {}).get(blk, []))
+        cols_export[f"utm_{sec}"] = list(dict.fromkeys(vals_flat))  # deduplicar, mantener orden
+
+    # Normalizar longitudes
+    max_len = max((len(v) for v in cols_export.values()), default=0)
+    for k in cols_export:
+        cols_export[k] += [""] * (max_len - len(cols_export[k]))
+
+    df_export = pd.DataFrame(cols_export)
+
+    # ── Hoja 2: estructura de bloques (referencia) ─────────────────
+    df_struct = pd.DataFrame([{
+        f"utm_{sec}": " | ".join(st.session_state.get(sec, []))
+        for sec in SECTIONS
+    }])
+
+    buffer = BytesIO()
+    import xlsxwriter as _xlsxwriter
+    wb = _xlsxwriter.Workbook(buffer)
+
+    # ── Formatos ──────────────────────────────────────────
+    def _fmt(wb, **kw):
+        base = {"font_name": "Arial", "font_size": 9, "valign": "vcenter"}
+        base.update(kw)
+        return wb.add_format(base)
+
+    hdr_fmt  = _fmt(wb, bold=True, bg_color="#3D5A80", font_color="#FFFFFF",
+                    border=1, border_color="#2e4460", align="center", font_size=9)
+    cell_fmt = _fmt(wb, font_name="Courier New", font_size=8, font_color="#3D5A80",
+                    border=1, border_color="#E4E4E7")
+    alt_fmt  = _fmt(wb, font_name="Courier New", font_size=8, font_color="#3D5A80",
+                    bg_color="#F8FAFC", border=1, border_color="#E4E4E7")
+    struct_fmt = _fmt(wb, font_size=8, font_color="#52525B",
+                      border=1, border_color="#E4E4E7")
+
+    # ── Hoja 1: valores_utm ────────────────────────────────
+    ws1 = wb.add_worksheet("valores_utm")
+    ws1.set_tab_color("#3D5A80")
+    ws1.freeze_panes(1, 0)
+    ws1.set_row(0, 22)
+
+    col_widths = [45, 16, 14, 14, 20]
+    for c, (col, w) in enumerate(zip(df_export.columns, col_widths)):
+        ws1.write(0, c, col, hdr_fmt)
+        ws1.set_column(c, c, w)
+
+    for r, row in df_export.iterrows():
+        fmt = alt_fmt if r % 2 == 0 else cell_fmt
+        for c, val in enumerate(row):
+            ws1.write(r + 1, c, str(val) if val else "", fmt)
+
+    # ── Hoja 2: estructura_bloques ─────────────────────────
+    ws2 = wb.add_worksheet("estructura_bloques")
+    ws2.set_tab_color("#71717A")
+    ws2.set_row(0, 22)
+    for c, col in enumerate(df_struct.columns):
+        ws2.write(0, c, col, hdr_fmt)
+        ws2.set_column(c, c, 35)
+    for c, val in enumerate(df_struct.iloc[0]):
+        ws2.write(1, c, str(val), struct_fmt)
+
+    wb.close()
     buffer.seek(0)
     st.download_button("naming_config.xlsx", data=buffer, file_name="naming_config.xlsx",
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
