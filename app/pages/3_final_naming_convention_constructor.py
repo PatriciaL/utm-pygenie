@@ -57,17 +57,49 @@ div[data-testid="stButton"].sticky-btn > button:hover {
 </style>
 <div style="background:#EEF2F7;border:1.5px solid #C5D3E8;border-radius:6px;padding:18px 22px;margin-bottom:4px">
   <div style="font-family:'Sora',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:#3D5A80;margin-bottom:10px">Cómo funciona</div>
-  <div style="font-family:'Sora',sans-serif;font-size:0.83rem;color:#1A1A1A;line-height:1.75;margin-bottom:14px">
+  <div style="font-family:'Sora',sans-serif;font-size:0.83rem;color:#1A1A1A;line-height:1.75;margin-bottom:16px">
     Define los <strong>bloques</strong> de cada parámetro UTM y añade <strong>valores</strong> a cada uno.
     Todo lo que configures aquí se cargará automáticamente en el <strong>Generador Masivo</strong>
-    para que puedas generar todas las combinaciones sin escribir nada manualmente.
+    de la pestaña <em>Generar</em> para que puedas hacerte un café mientras genera todas las combinaciones posibles sin escribir nada manualmente.
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px">
-    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_campaign</strong> &rarr; combinaciones de bloques</div>
-    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_source</strong> &rarr; fuentes de tráfico</div>
-    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_medium</strong> &rarr; canales o medios</div>
-    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_content</strong> &rarr; variantes del anuncio</div>
-    <div style="font-family:'Sora',sans-serif;font-size:0.74rem;color:#3D5A80"><strong>utm_term</strong> &rarr; palabras clave</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-bottom:16px">
+    <div style="background:#fff;border:1px solid #C5D3E8;border-radius:6px;padding:10px 14px">
+      <div style="font-family:'Sora',sans-serif;font-size:0.7rem;font-weight:700;color:#3D5A80;margin-bottom:4px">utm_campaign</div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#52525B;line-height:1.55">
+        El único que combina bloques entre sí. Cada bloque representa una parte del nombre de campaña
+        (producto, país, fecha…). El generador hará el producto cartesiano automáticamente.
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #C5D3E8;border-radius:6px;padding:10px 14px">
+      <div style="font-family:'Sora',sans-serif;font-size:0.7rem;font-weight:700;color:#3D5A80;margin-bottom:4px">utm_source</div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#52525B;line-height:1.55">
+        De dónde viene el tráfico. Cada bloque es una fuente distinta: google, facebook, newsletter…
+        Los valores se usan directamente, sin combinar.
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #C5D3E8;border-radius:6px;padding:10px 14px">
+      <div style="font-family:'Sora',sans-serif;font-size:0.7rem;font-weight:700;color:#3D5A80;margin-bottom:4px">utm_medium</div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#52525B;line-height:1.55">
+        El canal o tipo de tráfico: cpc, email, social, organic… Igual que source,
+        cada valor se trata de forma independiente.
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #C5D3E8;border-radius:6px;padding:10px 14px">
+      <div style="font-family:'Sora',sans-serif;font-size:0.7rem;font-weight:700;color:#3D5A80;margin-bottom:4px">utm_content · utm_term</div>
+      <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#52525B;line-height:1.55">
+        Opcionales. Content identifica la variante del anuncio (banner_azul, v1…).
+        Term se usa para palabras clave en campañas de búsqueda.
+      </div>
+    </div>
+  </div>
+  <div style="background:#3D5A8012;border-radius:4px;padding:10px 14px">
+    <div style="font-family:'Sora',sans-serif;font-size:0.72rem;color:#3D5A80;line-height:1.7">
+      <strong>Flujo recomendado:</strong>
+      configura aquí tu naming convention →
+      pulsa <em>Ir al Generador</em> →
+      en modo Masivo encontrarás todos los valores precargados →
+      genera y descarga.
+    </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -285,10 +317,12 @@ if st.button("Descargar Excel"):
         cols_export["utm_campaign"] = []
 
     # resto de parámetros: lista plana de valores (sin concatenar bloques)
+    # Si un bloque no tiene valores asignados, se usa el nombre del bloque como valor
     for sec in ["source", "medium", "content", "term"]:
         vals_flat = []
         for blk in st.session_state.get(sec, []):
-            vals_flat.extend(st.session_state.get(f"vals_{sec}", {}).get(blk, []))
+            blk_vals = st.session_state.get(f"vals_{sec}", {}).get(blk, [])
+            vals_flat.extend(blk_vals if blk_vals else [blk])
         cols_export[f"utm_{sec}"] = list(dict.fromkeys(vals_flat))  # deduplicar, mantener orden
 
     # Normalizar longitudes
@@ -354,5 +388,7 @@ if st.button("Descargar Excel"):
     st.download_button("naming_config.xlsx", data=buffer, file_name="naming_config.xlsx",
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+st.markdown("---")
+st.caption("Los valores configurados se cargarán automáticamente en el Generador Masivo.")
 st.markdown("---")
 st.caption("Los valores configurados se cargarán automáticamente en el Generador Masivo.")
