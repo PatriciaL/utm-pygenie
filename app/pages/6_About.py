@@ -124,7 +124,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 try:
-    response = requests.get("https://github.com/PatriciaL", timeout=5)
+    response = requests.get("https://api.github.com/users/PatriciaL/repos", timeout=5)
     response.raise_for_status()
     for repo in response.json():
         st.markdown(f"""
