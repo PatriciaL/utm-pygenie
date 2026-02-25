@@ -52,13 +52,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 steps = [
-    (":material/tune:", "Naming Convention",
+    ("Naming Convention",
      "Define los bloques y valores permitidos para cada parámetro UTM. Es el punto de partida: establece las reglas una vez y el resto de la app las usa automáticamente."),
-    (":material/link:", "Generador",
+    ("Generador",
      "Crea URLs con parámetros UTM en modo individual (una URL concreta) o masivo (todas las combinaciones posibles a partir de los valores del Naming Convention). Descarga el resultado en CSV o Excel."),
-    (":material/check_circle:", "Validador y Corrector",
+    ("Validador y Corrector",
      "Pega una URL o sube un archivo CSV/Excel. La app detecta errores — mayúsculas, espacios, duplicados, parámetros faltantes, UTMs en el fragmento # — y propone una versión corregida automáticamente. Genera un Excel de auditoría con 4 hojas listo para compartir con el equipo."),
-    (":material/rate_review:", "Feedback",
+    ("Feedback",
      "Comparte tu opinión sobre la herramienta. Las respuestas se guardan en tiempo real y el dashboard NPS muestra el estado del producto."),
 ]
 
