@@ -62,7 +62,7 @@ steps = [
      "Comparte tu opinión sobre la herramienta. Las respuestas se guardan en tiempo real y el dashboard NPS muestra el estado del producto."),
 ]
 
-for title, desc in steps:
+for icon, title, desc in steps:
     st.markdown(f"""
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;
                 padding:16px 18px;background:#FAFAFA;border:1.5px solid #E4E4E7;border-radius:8px">
