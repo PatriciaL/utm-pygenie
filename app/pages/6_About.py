@@ -41,7 +41,7 @@ st.markdown("""
   UTM Genie nació de un problema real: los parámetros UTM se escriben diferente en cada equipo,
   las hojas de cálculo se descontrolan y los errores no se detectan hasta que los datos ya están contaminados.
   Esta herramienta centraliza todo el flujo — desde definir las reglas hasta generar, validar y corregir URLs —
-  en un solo sitio, sin fricción.
+  en un solo sitio, sin fricción.No genera aperturas en ventanas adicionales para verificar el envio de la sesión a GA4 (pero no es mal punto - hope comming soon)
 </div>
 """, unsafe_allow_html=True)
 
