@@ -18,7 +18,7 @@ st.markdown("""
     Acerca de
   </div>
   <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#71717A;letter-spacing:0.01em">
-    Herramienta para crear utm y definir naming convention para GA4 · Beta pública 
+    Herramienta para campañas de marketing digital · Beta pública
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -30,7 +30,7 @@ st.markdown("""
               text-transform:uppercase;color:#92400E;margin-bottom:6px">Beta pública</div>
   <div style="font-family:'Sora',sans-serif;font-size:0.8rem;color:#78350F;line-height:1.65">
     UTM Genie está en fase beta. Puede tener bugs y las funcionalidades están en evolución constante.
-    Si encuentras algo raro o tienes sugerencias, cuéntamelo por LinkedIn o en la sección de feedback que tendrás en el menú — cada opinión cuenta (y me gusta aplicar aprendizajes).
+    Si encuentras algo raro o tienes sugerencias, cuéntamelo por LinkedIn — cada opinión cuenta.
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -41,7 +41,7 @@ st.markdown("""
   UTM Genie nació de un problema real: los parámetros UTM se escriben diferente en cada equipo,
   las hojas de cálculo se descontrolan y los errores no se detectan hasta que los datos ya están contaminados.
   Esta herramienta centraliza todo el flujo — desde definir las reglas hasta generar, validar y corregir URLs —
-  en un solo sitio, sin fricción.No genera aperturas en ventanas adicionales para verificar el envio de la sesión a GA4 (pero no es mal punto - hope comming soon)
+  en un solo sitio, sin fricción.
 </div>
 """, unsafe_allow_html=True)
 
@@ -52,17 +52,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 steps = [
-    ("Naming Convention",
+    (":material/tune:", "Naming Convention",
      "Define los bloques y valores permitidos para cada parámetro UTM. Es el punto de partida: establece las reglas una vez y el resto de la app las usa automáticamente."),
-    ("Generador",
+    (":material/link:", "Generador",
      "Crea URLs con parámetros UTM en modo individual (una URL concreta) o masivo (todas las combinaciones posibles a partir de los valores del Naming Convention). Descarga el resultado en CSV o Excel."),
-    ("Validador y Corrector",
+    (":material/check_circle:", "Validador y Corrector",
      "Pega una URL o sube un archivo CSV/Excel. La app detecta errores — mayúsculas, espacios, duplicados, parámetros faltantes, UTMs en el fragmento # — y propone una versión corregida automáticamente. Genera un Excel de auditoría con 4 hojas listo para compartir con el equipo."),
-    ("Feedback",
+    (":material/rate_review:", "Feedback",
      "Comparte tu opinión sobre la herramienta. Las respuestas se guardan en tiempo real y el dashboard NPS muestra el estado del producto."),
 ]
 
-for icon, title, desc in steps:
+for title, desc in steps:
     st.markdown(f"""
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;
                 padding:16px 18px;background:#FAFAFA;border:1.5px solid #E4E4E7;border-radius:8px">
